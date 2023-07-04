@@ -16,6 +16,7 @@ async def test_check_website():
         result = await check_website(session, url, re.compile(regex_str_opt), timeout=TEST_TIMEOUT_SECONDS)
 
         assert result.url == url
+        assert result.response_status == 200
         assert result.regex_opt == regex_str_opt
         assert result.regex_match_opt == "Example Domain"
 
@@ -25,5 +26,6 @@ async def test_check_website_with_impossible_timeout():
     async with aiohttp.ClientSession() as session:
         url = "https://example.org"
 
-        with pytest.raises(TimeoutError):
-            await check_website(session, url, timeout=0.01)
+        result = await check_website(session, url, timeout=0.01)
+
+        assert result.timeout_error is True

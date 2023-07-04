@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import NamedTuple
+from typing import Iterator, NamedTuple
 
 
 class CheckResult(NamedTuple):
@@ -16,9 +16,16 @@ class CheckResult(NamedTuple):
 
 class CheckResultHandler(ABC):
     @abstractmethod
-    def write(self, check_result: CheckResult) -> None:
+    async def write(self, check_result: CheckResult) -> None:
         ...
 
     @abstractmethod
-    def read_all(self) -> iter[CheckResult]:
+    async def read_all(self) -> Iterator[CheckResult]:
         ...
+
+    @abstractmethod
+    async def close(self) -> None:
+        ...
+
+    async def __del__(self) -> None:
+        return await self.close()

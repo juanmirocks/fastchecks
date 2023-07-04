@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "website_monitor"
+version = "0.1.0"
+description = ""
+authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
+readme = "README.md"
+packages = [{include = "website_monitor"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import NamedTuple
 
 
@@ -11,3 +12,13 @@ class CheckResult(NamedTuple):
     regex_match_opt: str | None
     #
     timeout_error: bool = False
+
+
+class CheckResultHandler(ABC):
+    @abstractmethod
+    def write(self, check_result: CheckResult) -> None:
+        ...
+
+    @abstractmethod
+    def read_all(self) -> iter[CheckResult]:
+        ...

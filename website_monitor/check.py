@@ -27,7 +27,7 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
     try:
         response = await response_ftr
 
-        (regex_str_opt, match_str_opt) = (None if regex_ptr_opt is None
+        (regex_str_opt, match_str_opt) = ((None, None) if regex_ptr_opt is None
                                           else (regex_ptr_opt.pattern, await search_pattern_whole_text_body(regex_ptr_opt, response)))
 
         # Get response time after (optionally) fetching the website's content (i.e., if the input regex is not None)

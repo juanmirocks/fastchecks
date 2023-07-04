@@ -9,6 +9,7 @@ packages = [{include = "website_monitor"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 aiohttp = "^3.8.4"
+psycopg = {extras = ["binary", "pool"], version = "^3.1.9"}
 
 
 [tool.poetry.group.dev.dependencies]

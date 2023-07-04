@@ -39,7 +39,7 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
         response = await response_ftr
 
         (regex_str_opt, match_str_opt) = (None if regex_ptr_opt is None
-                                          else (regex_ptr_opt.pattern, await search_pattern_whole_html_content(regex_ptr_opt, response)))
+                                          else (regex_ptr_opt.pattern, await search_pattern_whole_text_body(regex_ptr_opt, response)))
 
         # Get response time after (optionally) fetching the website's content (i.e., if the input regex is not None)
         response_time = datetime.datetime.now().timestamp() - timestamp_start
@@ -54,15 +54,15 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
         response_ftr.close()
 
 
-async def search_pattern_whole_html_content(regex_ptr: re.Pattern, response: aiohttp.ClientResponse) -> str:
+async def search_pattern_whole_text_body(regex_ptr: re.Pattern, response: aiohttp.ClientResponse) -> str:
     """
-    Search for a regex pattern in the response's (HTML) content.
+    Search for a regex pattern in the response's content (assumed to be in most cases HTML).
 
     WARNING: the whole response's body is read in memory.
 
     Alternatives:
-    * If regex search can limited to a line, we could use use response.content.readline() instead of response.text()
-    * The text body searched is HTML, not the HTML's text. If we want to search the HTML's text, we could use response.text() and then use a HTML parser to get the text.
+    * If regex search can limited to a line, we could use use response.content.readline() instead of response.text().
+    * The text body searched is raw HTML (in most cases), not the HTML's text. If we want to search the HTML's tex only, we would need an HTML parser.
     """
     content = await response.text()
     match_opt = regex_ptr.search(content)

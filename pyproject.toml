@@ -10,6 +10,13 @@ packages = [{include = "website_monitor"}]
 python = "^3.10"
 
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.4.1"
+pyflakes = "^3.0.1"
+bandit = "^1.7.5"
+black = "^23.3.0"
+pytest = "^7.4.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -24,6 +24,8 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
 
     timestamp_before = datetime.datetime.now().timestamp()
 
+    # Note: if the input regex is None, theoretically we could do a HEAD request instead of a GET request
+    # However, often websites do not support HEAD requests, so we stick to GET requests
     async with session.get(url) as response:
         regex_str_opt, match_str_opt = None, None
         if regex_ptr_opt is not None:

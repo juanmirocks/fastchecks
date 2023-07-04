@@ -49,7 +49,7 @@ async def search_pattern_whole_text_body(regex_ptr: re.Pattern, response: aiohtt
 
     WARNING: the whole response's body is read in memory.
 
-    Alternatives:
+    MAYBE (Alternatives):
     * If regex search can limited to a line, we could use use response.content.readline() instead of response.text().
     * The text body searched is raw HTML (in most cases), not the HTML's text. If we want to search the HTML's tex only, we would need an HTML parser.
     """

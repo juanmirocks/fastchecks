@@ -10,8 +10,8 @@ class CheckResult(NamedTuple):
     timestamp: float
     response_time: float
     response_status: int
-    checked_regex_opt: str | None
-    response_content_opt: str | None
+    regex_opt: str | None
+    regex_match_opt: str | None
 
 
 async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt: re.Pattern | None = None) -> CheckResult:

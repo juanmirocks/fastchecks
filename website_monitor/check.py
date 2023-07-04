@@ -4,6 +4,8 @@ import aiohttp
 from typing import NamedTuple
 from urllib.parse import urlparse
 
+from website_monitor import conf
+
 
 class CheckResult(NamedTuple):
     url: str
@@ -14,7 +16,7 @@ class CheckResult(NamedTuple):
     regex_match_opt: str | None
 
 
-async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt: re.Pattern | None = None) -> CheckResult:
+async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt: re.Pattern | None = None, timeout: float = None) -> CheckResult:
     """
     Access (GET) website's URL and return monitoring statistics.
 
@@ -24,9 +26,11 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
 
     timestamp_before = datetime.datetime.now().timestamp()
 
+    _timeout = conf.DEFAULT_REQ_TIMEOUT_CLIENT_TIMEOUT if timeout is None else timeout
+
     # Note: if the input regex is None, theoretically we could do a HEAD request instead of a GET request
     # However, often websites do not support HEAD requests, so we stick to GET requests
-    async with session.get(url) as response:
+    async with session.get(url, timeout=_timeout) as response:
         regex_str_opt, match_str_opt = None, None
         if regex_ptr_opt is not None:
             regex_str_opt = regex_ptr_opt.pattern

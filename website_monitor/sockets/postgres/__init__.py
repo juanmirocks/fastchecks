@@ -1,3 +1,4 @@
+from typing import AsyncIterator
 from website_monitor.types import CheckResult
 from website_monitor.sockets import CheckResultSocket
 from psycopg_pool import AsyncConnectionPool
@@ -17,7 +18,7 @@ class CheckResultSocketPostgres(CheckResultSocket):
     async def write(self, check_result: CheckResult) -> None:
         ...
 
-    async def read_all(self):
+    async def read_all(self) -> AsyncIterator[CheckResult]:
         async with self.__pool.connection() as aconn:
             acur = await aconn.execute("SELECT * FROM CheckResult;")
             acur.row_factory = namedtuple_row

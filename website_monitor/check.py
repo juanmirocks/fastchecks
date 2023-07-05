@@ -8,7 +8,9 @@ from website_monitor.types import CheckResult, WebsiteCheck
 from website_monitor.util import get_utcnow, get_utcnow_time_difference_seconds, validate_url
 
 
-async def check_website(session: aiohttp.ClientSession, check: WebsiteCheck, timeout: float | None = None) -> CheckResult:
+async def check_website(
+    session: aiohttp.ClientSession, check: WebsiteCheck, timeout: float | None = None
+) -> CheckResult:
     """
     Access (GET) website's URL and return monitoring statistics (e.g. return status, response time, etc.).
 
@@ -29,17 +31,37 @@ async def check_website(session: aiohttp.ClientSession, check: WebsiteCheck, tim
     try:
         response = await response_ftr
 
-        (regex, regex_match) = ((None, None) if check.regex is None
-                                          else (check.regex, await search_pattern_whole_text_body(check.regex, response)))
+        (regex, regex_match) = (
+            (None, None)
+            if check.regex is None
+            else (check.regex, await search_pattern_whole_text_body(check.regex, response))
+        )
 
         # Get response time after (optionally) fetching the website's content (i.e., if the input regex is not None)
         response_time = get_utcnow_time_difference_seconds(timestamp_start)
 
-        return CheckResult(url=check.url, timestamp_start=timestamp_start, response_time=response_time, response_status=response.status, regex=regex, regex_match=regex_match)
+        return CheckResult(
+            url=check.url,
+            timestamp_start=timestamp_start,
+            response_time=response_time,
+            response_status=response.status,
+            regex=regex,
+            regex_match=regex_match,
+        )
 
     except TimeoutError:
-        response_time = get_utcnow_time_difference_seconds(timestamp_start)  # we could use the _timeout value, but we want to be precise
-        return CheckResult(url=check.url, timestamp_start=timestamp_start, response_time=_timeout, response_status=None, regex=None, regex_match=None, timeout_error=True)
+        # we could use the _timeout value, but we want to be precise
+        response_time = get_utcnow_time_difference_seconds(timestamp_start)
+
+        return CheckResult(
+            url=check.url,
+            timestamp_start=timestamp_start,
+            response_time=_timeout,
+            response_status=None,
+            regex=None,
+            regex_match=None,
+            timeout_error=True,
+        )
 
     finally:
         response_ftr.close()

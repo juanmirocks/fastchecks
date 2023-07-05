@@ -10,6 +10,7 @@ from website_monitor.types import CheckResult, WebsiteCheck
 
 # -----------------------------------------------------------------------------
 
+
 class Context(NamedTuple):
     session: aiohttp.ClientSession
     socket: CheckResultSocketPostgres
@@ -20,7 +21,9 @@ class Context(NamedTuple):
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await asyncio.gather(self.session.close(), self.socket.close())
 
+
 # -----------------------------------------------------------------------------
+
 
 async def check_website_only(ctx: Context, check: WebsiteCheck) -> CheckResult:
     ret = await check_website(ctx.session, check)
@@ -36,7 +39,9 @@ async def read_all_results(ctx: Context) -> None:
     async for result in ctx.socket.read_all():
         print(result)
 
+
 # -----------------------------------------------------------------------------
+
 
 async def main() -> None:
     assert len(sys.argv) in (3, 4), "Usage: python -m website_monitor.check_quick <opr> <url> [regex]"
@@ -45,7 +50,9 @@ async def main() -> None:
     url = sys.argv[2]
     regex_str_opt = sys.argv[3] if len(sys.argv) == 4 else None
 
-    ctx = Context(session=aiohttp.ClientSession(), socket=await CheckResultSocketPostgres.create(conf.get_postgres_conninfo()))
+    ctx = Context(
+        session=aiohttp.ClientSession(), socket=await CheckResultSocketPostgres.create(conf.get_postgres_conninfo())
+    )
 
     async with ctx:
         match opr:

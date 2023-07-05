@@ -42,7 +42,6 @@ class WebsiteCheck(BaseModel):
             validate_regex(regex)
         return cls(url=url, regex=regex)
 
-
     @classmethod
     def create_without_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
         """

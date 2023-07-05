@@ -14,7 +14,9 @@ async def test_check_website():
         url = "https://example.org"
 
         regex = "Example D[a-z]+"
-        result = await check_website(session, WebsiteCheck.create_with_validation(url, regex), timeout=TEST_TIMEOUT_SECONDS)
+        result = await check_website(
+            session, WebsiteCheck.create_with_validation(url, regex), timeout=TEST_TIMEOUT_SECONDS
+        )
 
         assert result.url == url
         assert result.response_status == 200

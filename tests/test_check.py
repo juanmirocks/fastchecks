@@ -21,6 +21,7 @@ async def test_check_website():
         assert result.check.url == url
         assert result.check.regex == regex
 
+        assert result.is_success()
         assert result.response_status == 200
         assert result.regex_match == "Example Domain"
 

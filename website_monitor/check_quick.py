@@ -1,18 +1,16 @@
 import asyncio
-import re
 import aiohttp
 import sys
 
 from website_monitor.check import check_website
 from website_monitor.sockets.postgres import CheckResultSocketPostgres
 from website_monitor import conf
+from website_monitor.types import WebsiteCheck
 
 
-async def check_single_website_only(url: str, regex_str_opt: str | None = None) -> None:
-    regex_ptr_opt = None if regex_str_opt is None else re.compile(regex_str_opt)
-
+async def check_single_website_only(check: WebsiteCheck) -> None:
     async with aiohttp.ClientSession() as session:
-        result = await check_website(session, url, regex_ptr_opt)
+        result = await check_website(session, check)
         print(result)
 
 
@@ -31,7 +29,7 @@ if __name__ == "__main__":
 
     match opr:
         case "check_single_website_only":
-            asyncio.run(check_single_website_only(url, regex_str_opt))
+            asyncio.run(check_single_website_only(WebsiteCheck.create_with_validation(url, regex_str_opt)))
 
         case "read_all_results":
             asyncio.run(read_all_results())

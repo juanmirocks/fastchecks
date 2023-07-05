@@ -12,7 +12,7 @@ def validate_url(url: str, raise_error: bool = True) -> str | None:
     """
     # See: https://snyk.io/blog/secure-python-url-validation/
 
-    ret: str
+    ret: str | None
     try:
         result = urlparse(url)
         ret = result.scheme and result.netloc
@@ -28,7 +28,7 @@ def validate_url(url: str, raise_error: bool = True) -> str | None:
         return None
 
 
-def validate_regex(regex_str: str, raise_error: bool = True) -> re.Pattern | None:
+def validate_regex(regex: str, raise_error: bool = True) -> re.Pattern | None:
     """
     Validate regex string: the regex must be compilable.
 
@@ -36,10 +36,10 @@ def validate_regex(regex_str: str, raise_error: bool = True) -> re.Pattern | Non
     Else if raise_error is True, raise ValueError.
     """
     try:
-        return re.compile(regex_str)
+        return re.compile(regex)
     except re.error:
         if raise_error:
-            raise ValueError(f"Invalid regex (cannot compile it): {regex_str}")
+            raise ValueError(f"Invalid regex (cannot compile it): {regex}")
         else:
             return None
 

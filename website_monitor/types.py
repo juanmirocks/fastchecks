@@ -16,8 +16,12 @@ class CheckResult(BaseModel):
     #
     response_status: int | None
     regex: str | None
-    regex_match: str | None
-    #
+    regex_match: str | bool | None
+    """
+    If there is no regex, this MUST be None.
+    Else, if there is no match, this MUST be False.
+    Else (if there is a match) this is either a string (the matched text) or True (if we don't care about the matched text).
+    """
     timeout_error: bool = False
 
 

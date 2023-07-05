@@ -6,6 +6,7 @@ authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
 packages = [{include = "website_monitor"}]
 
+
 [tool.poetry.dependencies]
 python = "^3.11"
 aiohttp = "^3.8.4"

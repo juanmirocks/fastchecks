@@ -13,7 +13,7 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
 
     Optionally: check if the website's content matches the input regex.
     """
-    assert is_valid_url(url), f"Invalid URL: {url}"
+    validate_url(url)
 
     timestamp_start = get_utcnow()
 
@@ -60,13 +60,29 @@ async def search_pattern_whole_text_body(regex_ptr: re.Pattern, response: aiohtt
         return None
 
 
-# See: https://snyk.io/blog/secure-python-url-validation/
-def is_valid_url(url: str) -> bool:
+def validate_url(url: str, raise_error: bool = True) -> str | None:
+    """
+    Validate given string is a valid URL.
+
+    If the URL is valid, return its netloc (e.g. "www.example.com").
+    Else if raise_error is True, raise ValueError.
+    """
+    # See: https://snyk.io/blog/secure-python-url-validation/
+
+    ret: str
     try:
         result = urlparse(url)
-        return (result.scheme != "") and (result.netloc != "")
+        ret = result.scheme and result.netloc
     except:
-        return False
+        ret = None
+
+    if ret:
+        return ret
+    elif raise_error:
+        raise ValueError(f"Invalid URL: {url}")
+    else:
+        # ret could have been (without exception) the empty string (which is also falsy), but we return None to avoid confusions
+        return None
 
 
 def get_utcnow() -> datetime.datetime:

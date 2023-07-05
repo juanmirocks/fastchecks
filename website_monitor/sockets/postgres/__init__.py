@@ -25,7 +25,8 @@ class CheckResultSocketPostgres(CheckResultSocket):
 
     async def read_all(self) -> AsyncIterator[CheckResult]:
         async with self.__pool.connection() as aconn:
-            acur = await aconn.execute("SELECT * FROM CheckResult;")
+            acur = await aconn.execute(
+                """SELECT * FROM CheckResult ORDER BY timestamp_start DESC;""")
             acur.row_factory = namedtuple_row
             async for row in acur:
                 yield CheckResult(url=row.url, timestamp_start=row.timestamp_start, response_time=row.response_time, response_status=row.response_status, regex=row.regex, regex_match=row.regex_match)

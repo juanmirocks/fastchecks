@@ -4,6 +4,7 @@ import aiohttp
 import sys
 
 from website_monitor.check import check_website
+from website_monitor.sockets import CheckResultSocket
 from website_monitor.sockets.postgres import CheckResultSocketPostgres
 from website_monitor import conf
 from website_monitor.types import CheckResult, WebsiteCheck
@@ -13,7 +14,7 @@ from website_monitor.types import CheckResult, WebsiteCheck
 
 class Context(NamedTuple):
     session: aiohttp.ClientSession
-    socket: CheckResultSocketPostgres
+    socket: CheckResultSocket
 
     async def __aenter__(self) -> "Context":
         return self

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import AsyncIterator
+from pydantic.types import PositiveInt
 
 from website_monitor.types import CheckResult
 
@@ -10,7 +11,7 @@ class CheckResultSocket(ABC):
         ...
 
     @abstractmethod
-    async def read_all(self) -> AsyncIterator[CheckResult]:
+    async def read_last_n(self, n: PositiveInt) -> AsyncIterator[CheckResult]:
         ...
 
     @abstractmethod
@@ -30,7 +31,7 @@ class WebsiteCheckSocket(ABC):
         ...
 
     @abstractmethod
-    async def read_all(self) -> AsyncIterator[AsyncIterator]:
+    async def read_last_n(self, n: PositiveInt) -> AsyncIterator[AsyncIterator]:
         ...
 
     @abstractmethod

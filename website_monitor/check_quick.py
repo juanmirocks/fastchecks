@@ -36,8 +36,8 @@ async def write_result(ctx: Context, result: CheckResult) -> None:
     await ctx.socket.write(result)
 
 
-async def read_all_results(ctx: Context) -> None:
-    async for result in ctx.socket.read_all():
+async def read_last_100_results(ctx: Context) -> None:
+    async for result in ctx.socket.read_last_n(100):
         print(result)
 
 
@@ -64,8 +64,8 @@ async def main() -> None:
                 result = await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
                 await write_result(ctx, result)
 
-            case "read_all_results":
-                await read_all_results(ctx)
+            case "read_last_100_results":
+                await read_last_100_results(ctx)
 
             case _:
                 raise ValueError(f"Unknown opr: {opr}")

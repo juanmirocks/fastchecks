@@ -3,6 +3,7 @@ from website_monitor.types import CheckResult, WebsiteCheck
 from website_monitor.sockets import CheckResultSocket
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import namedtuple_row
+from psycopg import sql
 
 
 class CheckResultSocketPostgres(CheckResultSocket):
@@ -37,13 +38,20 @@ class CheckResultSocketPostgres(CheckResultSocket):
                 ),
             )
 
-    async def read_all(self) -> AsyncIterator[CheckResult]:
+    async def read_last_n(self, n: int):
         async with self.__pool.connection() as aconn:
-            acur = await aconn.execute("""SELECT * FROM CheckResult ORDER BY timestamp_start DESC;""")
+            acur = await aconn.execute(
+                sql.SQL("""
+                SELECT * FROM CheckResult
+                ORDER BY timestamp_start DESC
+                LIMIT {};"""
+                        .format(n)))
+
             acur.row_factory = namedtuple_row
             async for row in acur:
                 yield CheckResult(
-                    check=WebsiteCheck.create_without_validation(row.url, row.regex),
+                    check=WebsiteCheck.create_without_validation(
+                        row.url, row.regex),
                     #
                     timestamp_start=row.timestamp_start,
                     response_time=row.response_time,

@@ -1,5 +1,5 @@
 from typing import AsyncIterator
-from website_monitor.types import CheckResult
+from website_monitor.types import CheckResult, WebsiteCheck
 from website_monitor.sockets import CheckResultSocket
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import namedtuple_row
@@ -19,16 +19,21 @@ class CheckResultSocketPostgres(CheckResultSocket):
             await aconn.execute(
                 """
             INSERT INTO CheckResult
-            (url, timestamp_start, response_time, response_status, regex, regex_match, timeout_error)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);""",
+            (url, regex, timestamp_start, response_time, timeout_error, host_error, other_error, response_status, regex_match)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);""",
                 (
-                    result.url,
+                    result.check.url,
+                    result.check.regex,
+                    #
                     result.timestamp_start,
                     result.response_time,
-                    result.response_status,
-                    result.regex,
-                    result.regex_match,
+                    #
                     result.timeout_error,
+                    result.host_error,
+                    result.other_error,
+                    #
+                    result.response_status,
+                    result.regex_match,
                 ),
             )
 
@@ -38,11 +43,16 @@ class CheckResultSocketPostgres(CheckResultSocket):
             acur.row_factory = namedtuple_row
             async for row in acur:
                 yield CheckResult(
-                    url=row.url,
+                    check=WebsiteCheck.create_without_validation(row.url, row.regex),
+                    #
                     timestamp_start=row.timestamp_start,
                     response_time=row.response_time,
+                    #
+                    timeout_error=row.timeout_error,
+                    host_error=row.host_error,
+                    other_error=row.other_error,
+                    #
                     response_status=row.response_status,
-                    regex=row.regex,
                     regex_match=row.regex_match,
                 )
 

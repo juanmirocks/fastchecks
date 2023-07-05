@@ -1,5 +1,6 @@
-import datetime
+import logging
 import re
+import traceback
 import aiohttp
 from urllib.parse import urlparse
 
@@ -31,37 +32,52 @@ async def check_website(
     try:
         response = await response_ftr
 
-        (regex, regex_match) = (
-            (None, None)
+        regex_match = (
+            None
             if check.regex is None
-            else (check.regex, await search_pattern_whole_text_body(check.regex, response))
+            else await search_pattern_whole_text_body(check.regex, response)
         )
 
         # Get response time after (optionally) fetching the website's content (i.e., if the input regex is not None)
         response_time = get_utcnow_time_difference_seconds(timestamp_start)
 
-        return CheckResult(
-            url=check.url,
-            timestamp_start=timestamp_start,
-            response_time=response_time,
+        return CheckResult.response(
+            check,
+            timestamp_start,
+            response_time,
             response_status=response.status,
-            regex=regex,
             regex_match=regex_match,
         )
 
-    except TimeoutError:
-        # we could use the _timeout value, but we want to be precise
+    except Exception as e:
         response_time = get_utcnow_time_difference_seconds(timestamp_start)
 
-        return CheckResult(
-            url=check.url,
-            timestamp_start=timestamp_start,
-            response_time=_timeout,
-            response_status=None,
-            regex=None,
-            regex_match=None,
-            timeout_error=True,
-        )
+        match e:
+            case TimeoutError():
+               return CheckResult.failure(
+                    check,
+                    timestamp_start,
+                    response_time,
+                    timeout_error=True,
+                )
+            case aiohttp.ClientConnectorError():
+                logging.debug(f"{e}")  # nothing major, it can happen
+
+                return CheckResult.failure(
+                    check,
+                    timestamp_start,
+                    response_time,
+                    host_error=True,
+                )
+            case _:
+                logging.warn(f"UNKNOWN EXCEPTION: {e}", exc_info=True)  # unregistered exception, we log it
+
+                return CheckResult.failure(
+                    check,
+                    timestamp_start,
+                    response_time,
+                    other_error=True,
+                )
 
     finally:
         response_ftr.close()

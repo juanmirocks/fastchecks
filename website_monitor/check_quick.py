@@ -18,8 +18,8 @@ async def check_single_website_only(url: str, regex_str_opt: str | None = None) 
 
 async def read_all_results() -> None:
     async with await CheckResultSocketPostgres.create(conf.get_postgres_conninfo()) as socket:
-        async for row in socket.read_all():
-            print(row)
+        async for result in socket.read_all():
+            print(result)
 
 
 if __name__ == "__main__":

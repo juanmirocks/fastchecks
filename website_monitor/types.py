@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import datetime
 from typing import Iterator
 from pydantic import BaseModel
 
@@ -8,7 +9,7 @@ from pydantic import BaseModel
 # Note that Pydantic V2 (released in 2023 June) promises a 5-50x speedup over V1: https://docs.pydantic.dev/2.0/blog/pydantic-v2-alpha/#headlines
 class CheckResult(BaseModel):
     url: str
-    timestamp_start: float
+    timestamp_start: datetime.datetime
     response_time: float
     #
     response_status: int | None

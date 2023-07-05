@@ -16,7 +16,7 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
     """
     assert is_valid_url(url), f"Invalid URL: {url}"
 
-    timestamp_start = get_utcnow_timestamp()
+    timestamp_start = get_utcnow()
 
     _timeout = conf.DEFAULT_REQ_TIMEOUT_SECONDS if timeout is None else timeout
 
@@ -31,12 +31,12 @@ async def check_website(session: aiohttp.ClientSession, url: str, regex_ptr_opt:
                                           else (regex_ptr_opt.pattern, await search_pattern_whole_text_body(regex_ptr_opt, response)))
 
         # Get response time after (optionally) fetching the website's content (i.e., if the input regex is not None)
-        response_time = get_utcnow_timestamp() - timestamp_start
+        response_time = get_utcnow_time_difference_seconds(timestamp_start)
 
         return CheckResult(url=url, timestamp_start=timestamp_start, response_time=response_time, response_status=response.status, regex_opt=regex_str_opt, regex_match_opt=match_str_opt)
 
     except TimeoutError:
-        response_time = get_utcnow_timestamp() - timestamp_start  # we could use the _timeout value, but we want to be precise
+        response_time = get_utcnow_time_difference_seconds(timestamp_start)  # we could use the _timeout value, but we want to be precise
         return CheckResult(url=url, timestamp_start=timestamp_start, response_time=_timeout, response_status=None, regex_opt=None, regex_match_opt=None, timeout_error=True)
 
     finally:
@@ -70,10 +70,17 @@ def is_valid_url(url: str) -> bool:
         return False
 
 
-def get_utcnow_timestamp() -> float:
+def get_utcnow() -> datetime.datetime:
     """
     Return the current UTC timestamp in seconds.
 
     Use this method to make sure you are always using a timestamp with same timezone (UTC).
     """
-    return datetime.datetime.utcnow().timestamp()
+    return datetime.datetime.utcnow()
+
+
+def get_utcnow_time_difference_seconds(timestamp_start: datetime.datetime) -> float:
+    """
+    Return the time difference in seconds between the current UTC datetime and the input datetime.
+    """
+    return (get_utcnow() - timestamp_start).total_seconds()

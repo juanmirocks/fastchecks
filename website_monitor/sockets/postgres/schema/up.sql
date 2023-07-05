@@ -10,6 +10,7 @@ CREATE TABLE
   CheckResult (
     -- It's tempting to use the timestamp as the primary key, but the probability of collisions is not zero.
     id serial PRIMARY KEY,
+    -- MAYBE If we needed to often select by website's domain, we could create a separate column for it.
     url my_url NOT NULL,
     timestamp_start TIMESTAMP NOT NULL,
     response_time REAL NOT NULL,

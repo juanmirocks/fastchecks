@@ -1,5 +1,6 @@
 from typing import Iterator
-from website_monitor.types import CheckResult, CheckResultSocket
+from website_monitor.types import CheckResult
+from website_monitor.sockets import CheckResultSocket
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import namedtuple_row
 

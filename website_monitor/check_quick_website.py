@@ -16,7 +16,7 @@ async def main(url: str, regex_str_opt: str | None = None):
 
 if __name__ == "__main__":
     assert len(sys.argv) in (2, 3), "Usage: python -m website_monitor.check_quick_website <url> [regex]"
-    # Assert number of parameters is 1, 2, or 3
+    # Assert number of parameters is 2 or 3
 
     url = sys.argv[1]
     regex_str_opt = sys.argv[2] if len(sys.argv) == 3 else None

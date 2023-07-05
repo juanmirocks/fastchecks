@@ -41,17 +41,20 @@ class CheckResultSocketPostgres(CheckResultSocket):
     async def read_last_n(self, n: int):
         async with self.__pool.connection() as aconn:
             acur = await aconn.execute(
-                sql.SQL("""
+                sql.SQL(
+                    """
                 SELECT * FROM CheckResult
                 ORDER BY timestamp_start DESC
-                LIMIT {};"""
-                        .format(n)))
+                LIMIT {};""".format(
+                        n
+                    )
+                )
+            )
 
             acur.row_factory = namedtuple_row
             async for row in acur:
                 yield CheckResult(
-                    check=WebsiteCheck.create_without_validation(
-                        row.url, row.regex),
+                    check=WebsiteCheck.create_without_validation(row.url, row.regex),
                     #
                     timestamp_start=row.timestamp_start,
                     response_time=row.response_time,

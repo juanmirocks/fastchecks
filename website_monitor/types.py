@@ -59,24 +59,31 @@ class CheckResult(BaseModel):
         if self.check.regex is None:
             assert self.regex_match is None, "If there is no regex, regex_match MUST be None."
         else:
-            assert isinstance(self.regex_match, (str, bool)
-                              ), "If there is a regex, regex_match MUST be either a string (match's text) or a boolean (match flag)."
+            assert isinstance(
+                self.regex_match, (str, bool)
+            ), "If there is a regex, regex_match MUST be either a string (match's text) or a boolean (match flag)."
 
     def is_success(self) -> bool:
         """
         Return True if the check was successful (i.e. no error, response is OK, and expected regex wax matched if any).
         """
-        return (self.is_partial_success() and
-                (self.regex_match is None or isinstance(self.regex_match, (str, bool))))
+        return self.is_partial_success() and (self.regex_match is None or isinstance(self.regex_match, (str, bool)))
 
     def is_partial_success(self) -> bool:
         """
         Return True if the check was partially successful (i.e. no error and response is OK).
         """
-        return (self.response_status is not None and self.response_status < 400)
+        return self.response_status is not None and self.response_status < 400
 
     @classmethod
-    def response(cls, check: WebsiteCheck, timestamp_start: datetime.datetime, response_time: float, response_status: int, regex_match: str | bool | None) -> "CheckResult":
+    def response(
+        cls,
+        check: WebsiteCheck,
+        timestamp_start: datetime.datetime,
+        response_time: float,
+        response_status: int,
+        regex_match: str | bool | None,
+    ) -> "CheckResult":
         """
         Return a successful CheckResult.
         """
@@ -95,12 +102,21 @@ class CheckResult(BaseModel):
         )
 
     @classmethod
-    def failure(cls, check: WebsiteCheck, timestamp_start: datetime.datetime, response_time: float, timeout_error: bool = False, host_error: bool = False, other_error: bool = False) -> "CheckResult":
+    def failure(
+        cls,
+        check: WebsiteCheck,
+        timestamp_start: datetime.datetime,
+        response_time: float,
+        timeout_error: bool = False,
+        host_error: bool = False,
+        other_error: bool = False,
+    ) -> "CheckResult":
         """
         Return a failed CheckResult.
         """
         assert (timeout_error or host_error or other_error) and not (
-            timeout_error and host_error and other_error), "There can only be one error type."
+            timeout_error and host_error and other_error
+        ), "There can only be one error type."
 
         return cls(
             check=check,

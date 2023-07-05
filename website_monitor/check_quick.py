@@ -23,7 +23,7 @@ async def read_all_results() -> None:
 
 
 if __name__ == "__main__":
-    assert len(sys.argv) in (3, 4), "Usage: python -m website_monitor.check_quick_website <opr> <url> [regex]"
+    assert len(sys.argv) in (3, 4), "Usage: python -m website_monitor.check_quick <opr> <url> [regex]"
 
     opr = sys.argv[1]
     url = sys.argv[2]

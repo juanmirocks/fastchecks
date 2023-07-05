@@ -18,7 +18,7 @@ class CheckResult(BaseModel):
     timeout_error: bool = False
 
 
-class CheckResultHandler(ABC):
+class CheckResultSocket(ABC):
     @abstractmethod
     async def write(self, check_result: CheckResult) -> None:
         ...
@@ -31,7 +31,7 @@ class CheckResultHandler(ABC):
     async def close(self) -> None:
         ...
 
-    async def __aenter__(self) -> "CheckResultHandler":
+    async def __aenter__(self) -> "CheckResultSocket":
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:

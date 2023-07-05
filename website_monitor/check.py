@@ -29,17 +29,17 @@ async def check_website(session: aiohttp.ClientSession, check: WebsiteCheck, tim
     try:
         response = await response_ftr
 
-        (regex_str_opt, match_str_opt) = ((None, None) if check.regex is None
+        (regex, regex_match) = ((None, None) if check.regex is None
                                           else (check.regex, await search_pattern_whole_text_body(check.regex, response)))
 
         # Get response time after (optionally) fetching the website's content (i.e., if the input regex is not None)
         response_time = get_utcnow_time_difference_seconds(timestamp_start)
 
-        return CheckResult(url=check.url, timestamp_start=timestamp_start, response_time=response_time, response_status=response.status, regex_opt=regex_str_opt, regex_match_opt=match_str_opt)
+        return CheckResult(url=check.url, timestamp_start=timestamp_start, response_time=response_time, response_status=response.status, regex=regex, regex_match=regex_match)
 
     except TimeoutError:
         response_time = get_utcnow_time_difference_seconds(timestamp_start)  # we could use the _timeout value, but we want to be precise
-        return CheckResult(url=check.url, timestamp_start=timestamp_start, response_time=_timeout, response_status=None, regex_opt=None, regex_match_opt=None, timeout_error=True)
+        return CheckResult(url=check.url, timestamp_start=timestamp_start, response_time=_timeout, response_status=None, regex=None, regex_match=None, timeout_error=True)
 
     finally:
         response_ftr.close()

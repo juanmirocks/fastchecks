@@ -18,8 +18,8 @@ async def test_check_website():
 
         assert result.url == url
         assert result.response_status == 200
-        assert result.regex_opt == regex
-        assert result.regex_match_opt == "Example Domain"
+        assert result.regex == regex
+        assert result.regex_match == "Example Domain"
 
 
 @pytest.mark.asyncio

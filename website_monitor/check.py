@@ -1,7 +1,6 @@
 import datetime
 import re
 import aiohttp
-from typing import NamedTuple
 from urllib.parse import urlparse
 
 from website_monitor import conf

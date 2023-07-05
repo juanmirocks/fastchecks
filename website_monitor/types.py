@@ -27,5 +27,8 @@ class CheckResultHandler(ABC):
     async def close(self) -> None:
         ...
 
-    async def __del__(self) -> None:
-        return await self.close()
+    async def __aenter__(self) -> "CheckResultHandler":
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        await self.close()

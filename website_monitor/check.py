@@ -85,6 +85,22 @@ def validate_url(url: str, raise_error: bool = True) -> str | None:
         return None
 
 
+def validate_regex(regex_str: str, raise_error: bool = True) -> re.Pattern | None:
+    """
+    Validate regex string: the regex must be compilable.
+
+    If the regex is valid, return its re.Pattern.
+    Else if raise_error is True, raise ValueError.
+    """
+    try:
+        return re.compile(regex_str)
+    except re.error:
+        if raise_error:
+            raise ValueError(f"Invalid regex (cannot compile it): {regex_str}")
+        else:
+            return None
+
+
 def get_utcnow() -> datetime.datetime:
     """
     Return the current UTC timestamp in seconds.

@@ -6,7 +6,7 @@ from website_monitor.types import CheckResult
 
 class CheckResultSocket(ABC):
     @abstractmethod
-    async def write(self, check_result: CheckResult) -> None:
+    async def write(self, result: CheckResult) -> None:
         ...
 
     @abstractmethod

@@ -41,6 +41,6 @@ async def test_check_website_with_non_existent_url():
     async with aiohttp.ClientSession() as session:
         url = "https://doesnotexistsowhathappens.xxx"
 
-        result = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
+        result = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=TEST_TIMEOUT_SECONDS)
 
         assert result.host_error is True

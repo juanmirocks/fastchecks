@@ -1,9 +1,51 @@
 from typing import AsyncIterator
+
+from pydantic import PositiveInt
 from website_monitor.types import CheckResult, WebsiteCheck
-from website_monitor.sockets import CheckResultSocket
+from website_monitor.sockets import CheckResultSocket, WebsiteCheckSocket
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import namedtuple_row
 from psycopg import sql
+
+
+class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
+    __pool: AsyncConnectionPool
+
+    @classmethod
+    async def create(cls, conninfo: str) -> "WebsiteCheckSocket":
+        self = cls()
+        self.__pool = AsyncConnectionPool(conninfo)
+        return self
+
+    async def write(self, check: WebsiteCheck) -> None:
+        async with self.__pool.connection() as aconn:
+            await aconn.execute(
+                """
+            INSERT INTO WebsiteCheck
+            (url, regex)
+            VALUES (%s, %s);""",
+                (check.url, check.regex),
+            )
+
+    async def read_last_n(self, n: PositiveInt):
+        async with self.__pool.connection() as aconn:
+            acur = await aconn.execute(
+                sql.SQL(
+                    """
+                SELECT * FROM WebsiteCheck
+                ORDER BY id DESC
+                LIMIT {};""".format(
+                        n
+                    )
+                )
+            )
+
+            acur.row_factory = namedtuple_row
+            async for row in acur:
+                yield WebsiteCheck.create_without_validation(row.url, row.regex)
+
+    async def close(self) -> None:
+        return await self.__pool.close()
 
 
 class CheckResultSocketPostgres(CheckResultSocket):
@@ -38,7 +80,7 @@ class CheckResultSocketPostgres(CheckResultSocket):
                 ),
             )
 
-    async def read_last_n(self, n: int):
+    async def read_last_n(self, n: PositiveInt):
         async with self.__pool.connection() as aconn:
             acur = await aconn.execute(
                 sql.SQL(

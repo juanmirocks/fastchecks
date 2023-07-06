@@ -92,7 +92,7 @@ For reference, the size of https://python.org is, as of 2023-07-06, 49943 bytes.
 """
 
 
-async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientResponse) -> str | None:
+async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientResponse) -> str | bool | None:
     """
     Search for a regex pattern in the response's content (assumed to be in most cases HTML).
 
@@ -114,9 +114,9 @@ async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientRes
     ):
         content = await response.text()
         match_opt = re.search(regex, content)
-        if match_opt is not None:
+        if match_opt:
             return match_opt[0]
         else:
-            return None
+            return False
     else:
         return None

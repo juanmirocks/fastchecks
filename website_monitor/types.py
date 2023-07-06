@@ -48,6 +48,12 @@ class CheckResult(BaseModel):
     # Response values (OK response, <400, or not)
     response_status: int | None
     regex_match: str | bool | None
+    """
+    str: the tested regex matched and the matched string is this value.
+    bool True: the tested regex matched but the matched string is not available.
+    bool False: the tested regex did not match.
+    None: means "not tested" (e.g. there was no regex to test, the response was not OK, or the response body was ignored because it was too big or not text).
+    """
 
     def __init__(self, **data) -> None:
         """

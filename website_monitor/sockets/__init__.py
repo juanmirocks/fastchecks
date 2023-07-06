@@ -20,6 +20,10 @@ class WebsiteCheckSocket(ABC):
         ...
 
     @abstractmethod
+    async def delete(self, url: str) -> None:
+        ...
+
+    @abstractmethod
     async def close(self) -> None:
         ...
 

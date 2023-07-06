@@ -9,7 +9,6 @@ from psycopg import sql
 
 
 class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
-
     @classmethod
     async def create(cls, conninfo: str) -> "WebsiteCheckSocket":
         self = cls()
@@ -45,12 +44,20 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
             async for row in acur:
                 yield WebsiteCheck.create_without_validation(row.url, row.regex)
 
+    async def delete(self, url: str) -> None:
+        async with self.__pool.connection() as aconn:
+            await aconn.execute(
+                """
+            DELETE FROM WebsiteCheck
+            WHERE url = %s;""",
+                (url,),
+            )
+
     async def close(self) -> None:
         return await self.__pool.close()
 
 
 class CheckResultSocketPostgres(CheckResultSocket):
-
     @classmethod
     async def create(cls, conninfo: str) -> "CheckResultSocket":
         self = cls()

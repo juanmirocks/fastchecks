@@ -36,6 +36,9 @@ async def read_all_checks(ctx: Context) -> None:
     async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
         print(check)
 
+async def delete_check(ctx: Context, url: str) -> None:
+    await ctx.checks_socket.delete(url)
+
 
 # -----------------------------------------------------------------------------
 
@@ -84,6 +87,9 @@ async def main() -> None:
 
             case "read_all_checks":
                 await read_all_checks(ctx)
+
+            case "delete_check":
+                await delete_check(ctx, url)
 
             case "check_website_only":
                 await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))

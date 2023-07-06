@@ -27,8 +27,10 @@ class Context(NamedTuple):
 
 # -----------------------------------------------------------------------------
 
+
 async def upsert_check(ctx: Context, check: WebsiteCheck) -> None:
     await ctx.checks_socket.upsert(check)
+
 
 # -----------------------------------------------------------------------------
 

@@ -18,8 +18,7 @@ class WebsiteCheck(BaseModel):
         """
         Validate the given URL and regex (if any), and return a WebsiteCheck instance.
 
-        If the URL is invalid, raise ValueError.
-        If the regex is invalid, raise ValueError.
+        If the URL or regex are invalid, raise ValueError.
         """
         validate_url(url)
         if regex is not None:
@@ -31,7 +30,7 @@ class WebsiteCheck(BaseModel):
         """
         Return a WebsiteCheck instance without validating the given URL and regex (if any).
 
-        Note that this method is not recommended, because it is not safe.
+        Only use this method if you are sure that the URL and regex are valid (e.g., they were validated before).
         """
         return cls(url=url, regex=regex)
 

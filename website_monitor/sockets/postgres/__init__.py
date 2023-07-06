@@ -9,7 +9,6 @@ from psycopg import sql
 
 
 class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
-    __pool: AsyncConnectionPool
 
     @classmethod
     async def create(cls, conninfo: str) -> "WebsiteCheckSocket":
@@ -51,7 +50,6 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
 
 
 class CheckResultSocketPostgres(CheckResultSocket):
-    __pool: AsyncConnectionPool
 
     @classmethod
     async def create(cls, conninfo: str) -> "CheckResultSocket":

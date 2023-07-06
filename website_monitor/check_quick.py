@@ -57,7 +57,7 @@ async def write_result(ctx: Context, result: CheckResult) -> None:
 
 
 async def read_last_100_results(ctx: Context) -> None:
-    async for result in ctx.results_socket.read_last_n(100):
+    async for result in ctx.results_socket.read_last_n(__ResultsParams.READ_MAX_RESULTS):
         print(result)
 
 
@@ -92,7 +92,7 @@ async def main() -> None:
                 result = await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
                 await write_result(ctx, result)
 
-            case "read_last_100_results":
+            case __ResultsParams.READ_MAX_RESULTS_OPR:
                 await read_last_100_results(ctx)
 
             case _:

@@ -40,7 +40,8 @@ async def check_website(
         regex_match = (
             None
             if (
-                not response.ok  # Note: when the response is not OK (<400), we do not check the regex
+                # Note: when the response is not OK (<400), we do not check the regex
+                not response.ok
                 or check.regex is None
             )
             else await search_pattern_whole_text_body(check.regex, response)
@@ -78,7 +79,8 @@ async def check_website(
                     host_error=True,
                 )
             case _:
-                logging.warn(f"UNKNOWN EXCEPTION: {e}", exc_info=True)  # unregistered exception, we log it
+                # unregistered exception, we log it
+                logging.warn(f"UNKNOWN EXCEPTION: {e}", exc_info=True)
 
                 return CheckResult.failure(
                     check,

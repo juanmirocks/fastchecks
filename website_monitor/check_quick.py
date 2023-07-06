@@ -6,7 +6,7 @@ import sys
 from website_monitor.check import check_website
 from website_monitor.sockets import CheckResultSocket, WebsiteCheckSocket
 from website_monitor.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
-from website_monitor import conf
+from website_monitor import conf, util
 from website_monitor.types import CheckResult, WebsiteCheck
 
 # -----------------------------------------------------------------------------

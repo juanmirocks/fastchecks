@@ -14,6 +14,7 @@ from website_monitor.types import CheckResult, WebsiteCheck
 
 class Context(NamedTuple):
     session: aiohttp.ClientSession
+    # Potentially we could have different backends for checks and results (e.g. Redis for checks, Postgres for results).
     checks_socket: WebsiteCheckSocket
     results_socket: CheckResultSocket
 

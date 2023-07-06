@@ -60,8 +60,14 @@ async def write_result(ctx: Context, result: CheckResult) -> None:
     await ctx.results_socket.write(result)
 
 
-async def read_last_100_results(ctx: Context) -> None:
-    async for result in ctx.results_socket.read_last_n(__ResultsParams.READ_MAX_RESULTS):
+async def check_all_websites_and_write(ctx: Context) -> None:
+    async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+        result = await check_website_only(ctx, check)
+        await write_result(ctx, result)
+
+
+async def read_last_n_results(ctx: Context, n: int) -> None:
+    async for result in ctx.results_socket.read_last_n(n):
         print(result)
 
 
@@ -69,7 +75,8 @@ async def read_last_100_results(ctx: Context) -> None:
 
 
 async def main() -> None:
-    assert len(sys.argv) in (3, 4), "Usage: python -m website_monitor.check_quick <opr> <url> [regex]"
+    assert len(sys.argv) in (
+        3, 4), "Usage: python -m website_monitor.check_quick <opr> <url> [regex]"
 
     opr = sys.argv[1]
     url = sys.argv[2]
@@ -92,6 +99,8 @@ async def main() -> None:
             case "delete_check":
                 await delete_check(ctx, url)
 
+            ###
+
             case "check_website_only":
                 await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
 
@@ -99,8 +108,11 @@ async def main() -> None:
                 result = await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
                 await write_result(ctx, result)
 
+            case "check_all_websites_and_write":
+                await check_all_websites_and_write(ctx)
+
             case __ResultsParams.READ_MAX_RESULTS_OPR:
-                await read_last_100_results(ctx)
+                await read_last_n_results(ctx, __ResultsParams.READ_MAX_RESULTS)
 
             case _:
                 raise ValueError(f"Unknown opr: {opr}")

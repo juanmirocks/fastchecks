@@ -36,6 +36,7 @@ async def read_all_checks(ctx: Context) -> None:
     async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
         print(check)
 
+
 async def delete_check(ctx: Context, url: str) -> None:
     await ctx.checks_socket.delete(url)
 

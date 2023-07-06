@@ -67,7 +67,9 @@ class CheckResult(BaseModel):
         """
         Return True if the check was successful (i.e. no error, response is OK, and expected regex wax matched if any).
         """
-        return self.is_partial_success() and (self.regex_match is None or isinstance(self.regex_match, (str, bool)))
+        return self.is_partial_success() and (
+            (self.check.regex is None) or ((self.regex_match is True) or isinstance(self.regex_match, str))
+        )
 
     def is_partial_success(self) -> bool:
         """

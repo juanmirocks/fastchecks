@@ -80,7 +80,7 @@ def get_utcnow_time_difference_seconds(timestamp_start: datetime.datetime) -> fl
     return (get_utcnow() - timestamp_start).total_seconds()
 
 
-def is_likely_text_based_body(response: aiohttp.ClientResponse) -> True:
+def is_likely_text_based_body(response: aiohttp.ClientResponse) -> bool:
     """
     Return True if the response's content type is likely to be text-based (e.g. HTML, JSON, XML, etc.).
 
@@ -88,7 +88,7 @@ def is_likely_text_based_body(response: aiohttp.ClientResponse) -> True:
     """
     content_type = response.content_type.lower()
     return (
-        response.charset  # i.e., it's not None
+        response.charset is not None
         or content_type.startswith("text/")
         or content_type.endswith("+xml")
         or content_type.endswith("+json")
@@ -97,7 +97,7 @@ def is_likely_text_based_body(response: aiohttp.ClientResponse) -> True:
     )
 
 
-def is_content_length_less_than(response: aiohttp.ClientResponse, length: int, allow_none_content_length: bool) -> True:
+def is_content_length_less_than(response: aiohttp.ClientResponse, length: int, allow_none_content_length: bool) -> bool:
     content_length = response.headers.get("Content-Length")
 
     if content_length is None:

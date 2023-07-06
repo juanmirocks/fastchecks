@@ -36,7 +36,6 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
                 sql.SQL(
                     """
                 SELECT * FROM WebsiteCheck
-                ORDER BY id DESC
                 LIMIT {};""".format(
                         n
                     )

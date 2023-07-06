@@ -32,7 +32,18 @@ async def upsert_check(ctx: Context, check: WebsiteCheck) -> None:
     await ctx.checks_socket.upsert(check)
 
 
+async def read_all_checks(ctx: Context) -> None:
+    async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+        print(check)
+
+
 # -----------------------------------------------------------------------------
+
+
+class __ResultsParams:
+    READ_MAX_RESULTS = 100
+    # To pattern match a variable's value (below), we need to use a class/enum; see: https://peps.python.org/pep-0636/#matching-against-constants-and-enums
+    READ_MAX_RESULTS_OPR = f"read_last_{READ_MAX_RESULTS}_results"
 
 
 async def check_website_only(ctx: Context, check: WebsiteCheck) -> CheckResult:
@@ -70,6 +81,9 @@ async def main() -> None:
         match opr:
             case "upsert_check":
                 await upsert_check(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
+
+            case "read_all_checks":
+                await read_all_checks(ctx)
 
             case "check_website_only":
                 await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))

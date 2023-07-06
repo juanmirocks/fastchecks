@@ -37,7 +37,14 @@ async def check_website(
     try:
         response = await response_ftr
 
-        regex_match = None if check.regex is None else await search_pattern_whole_text_body(check.regex, response)
+        regex_match = (
+            None
+            if (
+                not response.ok  # Note: when the response is not OK (<400), we do not check the regex
+                or check.regex is None
+            )
+            else await search_pattern_whole_text_body(check.regex, response)
+        )
 
         # Get response time after (optionally) fetching the website's content (i.e., if the input regex is not None)
         response_time = get_utcnow_time_difference_seconds(timestamp_start)

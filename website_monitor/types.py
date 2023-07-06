@@ -68,15 +68,31 @@ class CheckResult(BaseModel):
         """
         Return True if the check was successful (i.e. no error, response is OK, and expected regex wax matched if any).
         """
-        return self.is_partial_success() and (
-            (self.check.regex is None) or ((self.regex_match is True) or isinstance(self.regex_match, str))
-        )
+        return self.is_response_ok() and self.is_regex_validated()
 
-    def is_partial_success(self) -> bool:
+    def is_response_ok(self) -> bool:
         """
         Return True if the check was partially successful (i.e. no error and response is OK).
         """
         return self.response_status is not None and self.response_status < 400
+
+    def is_regex_validated(self) -> bool:
+        """
+        Return True if the regex was validated (i.e. there was a regex and it matched).
+        """
+        return self.check.regex is None or self.is_regex_match_truthy()
+
+    def is_regex_match_truthy(self) -> bool:
+        """
+        Return True if the regex matched and it's either True or the matched string is present.
+
+        Note: we consider a regex match to be truthy even if the matched string is the empty string.
+        This could be changed.
+        """
+        return self.regex_match is True or isinstance(self.regex_match, str)
+
+    def regex_match_to_bool_or_none(self) -> bool | None:
+        return None if self.regex_match is None else self.is_regex_match_truthy()
 
     @classmethod
     def response(

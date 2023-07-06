@@ -83,7 +83,7 @@ class CheckResultSocketPostgres(CheckResultSocket):
                     result.other_error,
                     #
                     result.response_status,
-                    result.regex_match,
+                    result.regex_match_to_bool_or_none(),
                 ),
             )
 
@@ -103,7 +103,8 @@ class CheckResultSocketPostgres(CheckResultSocket):
             acur.row_factory = namedtuple_row
             async for row in acur:
                 yield CheckResult(
-                    check=WebsiteCheck.create_without_validation(row.url, row.regex),
+                    check=WebsiteCheck.create_without_validation(
+                        row.url, row.regex),
                     #
                     timestamp_start=row.timestamp_start,
                     response_time=row.response_time,

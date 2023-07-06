@@ -9,11 +9,8 @@ from psycopg import sql
 
 
 class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
-    @classmethod
-    async def create(cls, conninfo: str) -> "WebsiteCheckSocket":
-        self = cls()
+    def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
-        return self
 
     async def upsert(self, check: WebsiteCheck) -> None:
         async with self.__pool.connection() as aconn:
@@ -58,11 +55,8 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
 
 
 class CheckResultSocketPostgres(CheckResultSocket):
-    @classmethod
-    async def create(cls, conninfo: str) -> "CheckResultSocket":
-        self = cls()
+    def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
-        return self
 
     async def write(self, result: CheckResult) -> None:
         async with self.__pool.connection() as aconn:
@@ -103,8 +97,7 @@ class CheckResultSocketPostgres(CheckResultSocket):
             acur.row_factory = namedtuple_row
             async for row in acur:
                 yield CheckResult(
-                    check=WebsiteCheck.create_without_validation(
-                        row.url, row.regex),
+                    check=WebsiteCheck.create_without_validation(row.url, row.regex),
                     #
                     timestamp_start=row.timestamp_start,
                     response_time=row.response_time,

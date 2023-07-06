@@ -84,8 +84,8 @@ async def main() -> None:
 
     ctx = Context(
         session=aiohttp.ClientSession(),
-        checks_socket=await WebsiteCheckSocketPostgres.create(conf.get_postgres_conninfo()),
-        results_socket=await CheckResultSocketPostgres.create(conf.get_postgres_conninfo()),
+        checks_socket=WebsiteCheckSocketPostgres(conf.get_postgres_conninfo()),
+        results_socket=CheckResultSocketPostgres(conf.get_postgres_conninfo()),
     )
 
     async with ctx:

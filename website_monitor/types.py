@@ -57,10 +57,6 @@ class CheckResult(BaseModel):
 
         if self.check.regex is None:
             assert self.regex_match is None, "If there is no regex, regex_match MUST be None."
-        else:
-            assert isinstance(
-                self.regex_match, (str, bool)
-            ), "If there is a regex, regex_match MUST be either a string (match's text) or a boolean (match flag)."
 
     def is_success(self) -> bool:
         """

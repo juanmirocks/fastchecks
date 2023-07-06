@@ -6,7 +6,12 @@ from urllib.parse import urlparse
 
 from website_monitor import conf
 from website_monitor.types import CheckResult, WebsiteCheck
-from website_monitor.util import get_utcnow, get_utcnow_time_difference_seconds, validate_url
+from website_monitor.util import (
+    get_utcnow,
+    get_utcnow_time_difference_seconds,
+    is_likely_text_based_body,
+    is_content_length_less_than,
+)
 
 
 async def check_website(
@@ -79,19 +84,39 @@ async def check_website(
         response_ftr.close()
 
 
+__ARBITRARY_TOO_BIG_CONTENT_LENGTH = 100000
+"""
+Arbitrary value to consider a response's content length as too big to be read in memory.
+
+For reference, the size of https://python.org is, as of 2023-07-06, 49943 bytes.
+"""
+
+
 async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientResponse) -> str | None:
     """
     Search for a regex pattern in the response's content (assumed to be in most cases HTML).
 
     WARNING: the whole response's body is read in memory.
 
+    To alleviate this:
+    * we only read the response's body if it's likely to be text based (in particular, not binary) and
+    * the response's Content-Length header is None (note: some websites do not report it) or is less than `__ARBITRARY_TOO_BIG_CONTENT_LENGTH`.
+    -
+    If, according to the rules above, the response's body is not read, we return None. Thus, the regex does not get tested.
+
+
     MAYBE (Alternatives):
     * If regex search can limited to a line, we could use use response.content.readline() instead of response.text().
-    * The text body searched is raw HTML (in most cases), not the HTML's text. If we want to search the HTML's tex only, we would need an HTML parser.
+    * The text body searched is raw HTML (in most cases), not the HTML's text. If we want to search the text of the HTML (or other text-based format) only, we would need a corresponding parser.
     """
-    content = await response.text()
-    match_opt = re.search(regex, content)
-    if match_opt is not None:
-        return match_opt[0]
+    if is_likely_text_based_body(response) and is_content_length_less_than(
+        response, length=__ARBITRARY_TOO_BIG_CONTENT_LENGTH, allow_none_content_length=True
+    ):
+        content = await response.text()
+        match_opt = re.search(regex, content)
+        if match_opt is not None:
+            return match_opt[0]
+        else:
+            return None
     else:
         return None

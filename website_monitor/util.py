@@ -4,6 +4,8 @@ from urllib.parse import urlparse
 import sys
 import ctypes
 
+import aiohttp
+
 
 PRACTICAL_MAX_INT = sys.maxsize // ctypes.sizeof(ctypes.c_void_p)
 """
@@ -76,3 +78,29 @@ def get_utcnow_time_difference_seconds(timestamp_start: datetime.datetime) -> fl
     Return the time difference in seconds between the current UTC datetime and the input datetime.
     """
     return (get_utcnow() - timestamp_start).total_seconds()
+
+
+def is_likely_text_based_body(response: aiohttp.ClientResponse) -> True:
+    """
+    Return True if the response's content type is likely to be text-based (e.g. HTML, JSON, XML, etc.).
+
+    Note: this method is not 100% reliable, but good enough for our purposes.
+    """
+    content_type = response.content_type.lower()
+    return (
+        response.charset  # i.e., it's not None
+        or content_type.startswith("text/")
+        or content_type.endswith("+xml")
+        or content_type.endswith("+json")
+        or content_type.endswith("+xhtml")
+        or content_type.endswith("+html")
+    )
+
+
+def is_content_length_less_than(response: aiohttp.ClientResponse, length: int, allow_none_content_length: bool) -> True:
+    content_length = response.headers.get("Content-Length")
+
+    if content_length is None:
+        return allow_none_content_length
+    else:
+        return int(content_length) < length

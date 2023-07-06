@@ -7,7 +7,12 @@ from website_monitor.types import CheckResult
 
 class WebsiteCheckSocket(ABC):
     @abstractmethod
-    async def write(self, check: CheckResult) -> None:
+    async def upsert(self, check: CheckResult) -> None:
+        """"
+        Upsert a check into the socket's underlying storage.
+        That is, if the check's URL already exists, update the regex.
+        Otherwise, insert/add/write the check.
+        """
         ...
 
     @abstractmethod

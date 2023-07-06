@@ -27,8 +27,8 @@ class Context(NamedTuple):
 
 # -----------------------------------------------------------------------------
 
-async def write_check(ctx: Context, check: WebsiteCheck) -> None:
-    await ctx.checks_socket.write(check)
+async def upsert_check(ctx: Context, check: WebsiteCheck) -> None:
+    await ctx.checks_socket.upsert(check)
 
 # -----------------------------------------------------------------------------
 
@@ -66,8 +66,8 @@ async def main() -> None:
 
     async with ctx:
         match opr:
-            case "write_check":
-                await write_check(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
+            case "upsert_check":
+                await upsert_check(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
 
             case "check_website_only":
                 await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))

@@ -17,13 +17,16 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
         self.__pool = AsyncConnectionPool(conninfo)
         return self
 
-    async def write(self, check: WebsiteCheck) -> None:
+    async def upsert(self, check: WebsiteCheck) -> None:
         async with self.__pool.connection() as aconn:
             await aconn.execute(
                 """
             INSERT INTO WebsiteCheck
             (url, regex)
-            VALUES (%s, %s);""",
+            VALUES (%s, %s)
+            ON CONFLICT (url) DO UPDATE
+                SET regex = EXCLUDED.regex;
+            """,
                 (check.url, check.regex),
             )
 

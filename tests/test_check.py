@@ -1,8 +1,7 @@
-import re
 import aiohttp
 import pytest
-from website_monitor.check import check_website
-from website_monitor.types import WebsiteCheck
+from fastchecks.check import check_website
+from fastchecks.types import WebsiteCheck
 
 
 TEST_TIMEOUT_SECONDS = 8

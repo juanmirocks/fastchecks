@@ -1,7 +1,8 @@
 import datetime
 from pydantic import BaseModel
 
-from website_monitor.util import validate_regex, validate_url
+from fastchecks.util import validate_regex, validate_url
+from fastchecks import require
 
 
 # We use Pydantic classes for type safety and because they could be handy in the future for de/serialization.
@@ -62,7 +63,7 @@ class CheckResult(BaseModel):
         super().__init__(**data)
 
         if self.check.regex is None:
-            assert self.regex_match is None, "If there is no regex, regex_match MUST be None."
+            require(self.regex_match is None, "If there is no regex, regex_match MUST be None.")
 
     def is_success(self) -> bool:
         """
@@ -133,9 +134,10 @@ class CheckResult(BaseModel):
         """
         Return a failed CheckResult.
         """
-        assert (timeout_error or host_error or other_error) and not (
-            timeout_error and host_error and other_error
-        ), "There can only be one error type."
+        require(
+            (timeout_error or host_error or other_error) and not (timeout_error and host_error and other_error),
+            "There can only be one error type.",
+        )
 
         return cls(
             check=check,

@@ -3,11 +3,11 @@ from typing import NamedTuple
 import aiohttp
 import sys
 
-from website_monitor.check import check_website
-from website_monitor.sockets import CheckResultSocket, WebsiteCheckSocket
-from website_monitor.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
-from website_monitor import conf, util
-from website_monitor.types import CheckResult, WebsiteCheck
+from fastchecks.check import check_website
+from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
+from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
+from fastchecks import conf, require, util
+from fastchecks.types import CheckResult, WebsiteCheck
 
 # -----------------------------------------------------------------------------
 
@@ -75,8 +75,7 @@ async def read_last_n_results(ctx: Context, n: int) -> None:
 
 
 async def main() -> None:
-    assert len(sys.argv) in (
-        3, 4), "Usage: python -m website_monitor.check_quick <opr> <url> [regex]"
+    require(len(sys.argv) in (3, 4), "Usage: python -m fastchecks.check_quick <opr> <url> [regex]")
 
     opr = sys.argv[1]
     url = sys.argv[2]

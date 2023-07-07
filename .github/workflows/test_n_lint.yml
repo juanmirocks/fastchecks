@@ -1,0 +1,41 @@
+name: test & lint
+
+on: [push]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+        poetry-version: ["1.5"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install poetry ${{ matrix.poetry-version }}
+        run: |
+          pipx install "poetry~=${{ matrix.poetry-version }}"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "poetry" # cache dependencies
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: Test with pytest & pytest-cov
+        run: |
+          poetry run poe test
+
+      - name: Lint with multiple tasks, including security checks
+        run: |
+          poetry run poe lint_sec
+          poetry run poe lint_errors

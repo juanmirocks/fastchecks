@@ -1,17 +1,19 @@
 [tool.poetry]
-name = "website_monitor"
+name = "fastchecks"
 version = "0.1.0"
 description = ""
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
-packages = [{include = "website_monitor"}]
+packages = [{ include = "fastchecks" }]
 
 
 [tool.poetry.dependencies]
 python = "^3.11"
 aiohttp = "^3.8.4"
-psycopg = {extras = ["binary", "pool"], version = "^3.1.9"}
+psycopg = { extras = ["binary", "pool"], version = "^3.1.9" }
 pydantic = "^2.0.1"
+pytest-xdist = "^3.3.1"
+pytest-cov = "^4.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -21,6 +23,7 @@ bandit = "^1.7.5"
 black = "^23.3.0"
 pytest = "^7.4.0"
 pytest-asyncio = "^0.21.0"
+poethepoet = "^0.20.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -29,3 +32,19 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 120
+
+
+[tool.bandit.assert_used]
+skips = ["*/test_*.py"]
+
+
+# poethepoet: python & shell scripts to run within poetry: https://poethepoet.natn.io/
+[tool.poe.tasks]
+# format code
+fmt = "black ."
+# run tests with coverage -- for now do not use xdist's `-n auto` option
+test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=html:.cov/html"
+lint_sec = "bandit -c pyproject.toml -r ."
+lint_errors = "pyflakes ."
+lint_types = "mypy ."
+lint_types_strict = "mypy --strict ."

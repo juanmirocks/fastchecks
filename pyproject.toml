@@ -41,3 +41,5 @@ skips = ["*/test_*.py"]
 fmt = "black ."  # format code
 lint_sec = "bandit -c pyproject.toml -r ."
 lint_errors = "pyflakes ."
+lint_types = "mypy ."
+lint_types_strict = "mypy --strict ."

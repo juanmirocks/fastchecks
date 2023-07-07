@@ -1,4 +1,3 @@
-import re
 import aiohttp
 import pytest
 from website_monitor.check import check_website

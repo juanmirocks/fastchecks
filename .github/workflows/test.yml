@@ -1,4 +1,4 @@
-name: Test (& Lint) Python application on every push
+name: test&lint
 
 on: [push]
 

@@ -43,3 +43,6 @@ CREATE TABLE
 
 -- Note: we don't set up a foreign key on the url. We might have check results for websites that were never stored or are no longer being checked.
 CREATE INDEX result__url__idx ON CheckResult USING hash (url);
+
+-- Create index on timestamp_start, descending, since we will often want to select the most recent results.
+CREATE INDEX result__timestamp_start__desc__idx ON CheckResult USING btree (timestamp_start DESC);

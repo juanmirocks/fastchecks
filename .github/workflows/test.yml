@@ -2,7 +2,6 @@ name: Test (& Lint) Python application on every push
 
 on: [push]
 
-permissions: {}
 permissions:
   contents: read
 

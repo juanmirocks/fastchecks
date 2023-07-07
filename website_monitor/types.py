@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from website_monitor.util import validate_regex, validate_url
 
 
-# We use Pydantic classes for type safety
+# We use Pydantic classes for type safety and because they could be handy in the future for de/serialization.
 # See benchmarks with other alternatives (e.g. NamedTuple): https://janhendrikewers.uk/pydantic_vs_protobuf_vs_namedtuple_vs_dataclasses.html
 # Note that Pydantic V2 (released in 2023 June) promises a 5-50x speedup over V1: https://docs.pydantic.dev/2.0/blog/pydantic-v2-alpha/#headlines
 
@@ -18,8 +18,7 @@ class WebsiteCheck(BaseModel):
         """
         Validate the given URL and regex (if any), and return a WebsiteCheck instance.
 
-        If the URL is invalid, raise ValueError.
-        If the regex is invalid, raise ValueError.
+        If the URL or regex are invalid, raise ValueError.
         """
         validate_url(url)
         if regex is not None:
@@ -31,7 +30,7 @@ class WebsiteCheck(BaseModel):
         """
         Return a WebsiteCheck instance without validating the given URL and regex (if any).
 
-        Note that this method is not recommended, because it is not safe.
+        Only use this method if you are sure that the URL and regex are valid (e.g., they were validated before).
         """
         return cls(url=url, regex=regex)
 
@@ -49,6 +48,12 @@ class CheckResult(BaseModel):
     # Response values (OK response, <400, or not)
     response_status: int | None
     regex_match: str | bool | None
+    """
+    str: the tested regex matched and the matched string is this value.
+    bool True: the tested regex matched but the matched string is not available.
+    bool False: the tested regex did not match.
+    None: means "not tested" (e.g. there was no regex to test, the response was not OK, or the response body was ignored because it was too big or not text).
+    """
 
     def __init__(self, **data) -> None:
         """
@@ -58,22 +63,36 @@ class CheckResult(BaseModel):
 
         if self.check.regex is None:
             assert self.regex_match is None, "If there is no regex, regex_match MUST be None."
-        else:
-            assert isinstance(
-                self.regex_match, (str, bool)
-            ), "If there is a regex, regex_match MUST be either a string (match's text) or a boolean (match flag)."
 
     def is_success(self) -> bool:
         """
         Return True if the check was successful (i.e. no error, response is OK, and expected regex wax matched if any).
         """
-        return self.is_partial_success() and (self.regex_match is None or isinstance(self.regex_match, (str, bool)))
+        return self.is_response_ok() and self.is_regex_validated()
 
-    def is_partial_success(self) -> bool:
+    def is_response_ok(self) -> bool:
         """
         Return True if the check was partially successful (i.e. no error and response is OK).
         """
         return self.response_status is not None and self.response_status < 400
+
+    def is_regex_validated(self) -> bool:
+        """
+        Return True if the regex was validated (i.e. there was a regex and it matched).
+        """
+        return self.check.regex is None or self.is_regex_match_truthy()
+
+    def is_regex_match_truthy(self) -> bool:
+        """
+        Return True if the regex matched and it's either True or the matched string is present.
+
+        Note: we consider a regex match to be truthy even if the matched string is the empty string.
+        This could be changed.
+        """
+        return self.regex_match is True or isinstance(self.regex_match, str)
+
+    def regex_match_to_bool_or_none(self) -> bool | None:
+        return None if self.regex_match is None else self.is_regex_match_truthy()
 
     @classmethod
     def response(

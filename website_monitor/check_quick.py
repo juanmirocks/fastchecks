@@ -6,7 +6,7 @@ import sys
 from website_monitor.check import check_website
 from website_monitor.sockets import CheckResultSocket, WebsiteCheckSocket
 from website_monitor.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
-from website_monitor import conf
+from website_monitor import conf, util
 from website_monitor.types import CheckResult, WebsiteCheck
 
 # -----------------------------------------------------------------------------
@@ -14,6 +14,7 @@ from website_monitor.types import CheckResult, WebsiteCheck
 
 class Context(NamedTuple):
     session: aiohttp.ClientSession
+    # Potentially we could have different backends for checks and results (e.g. Redis for checks, Postgres for results).
     checks_socket: WebsiteCheckSocket
     results_socket: CheckResultSocket
 
@@ -26,10 +27,27 @@ class Context(NamedTuple):
 
 # -----------------------------------------------------------------------------
 
-async def write_check(ctx: Context, check: WebsiteCheck) -> None:
-    await ctx.checks_socket.write(check)
+
+async def upsert_check(ctx: Context, check: WebsiteCheck) -> None:
+    await ctx.checks_socket.upsert(check)
+
+
+async def read_all_checks(ctx: Context) -> None:
+    async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+        print(check)
+
+
+async def delete_check(ctx: Context, url: str) -> None:
+    await ctx.checks_socket.delete(url)
+
 
 # -----------------------------------------------------------------------------
+
+
+class __ResultsParams:
+    READ_MAX_RESULTS = 100
+    # To pattern match a variable's value (below), we need to use a class/enum; see: https://peps.python.org/pep-0636/#matching-against-constants-and-enums
+    READ_MAX_RESULTS_OPR = f"read_last_{READ_MAX_RESULTS}_results"
 
 
 async def check_website_only(ctx: Context, check: WebsiteCheck) -> CheckResult:
@@ -42,8 +60,14 @@ async def write_result(ctx: Context, result: CheckResult) -> None:
     await ctx.results_socket.write(result)
 
 
-async def read_last_100_results(ctx: Context) -> None:
-    async for result in ctx.results_socket.read_last_n(100):
+async def check_all_websites_and_write(ctx: Context) -> None:
+    async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+        result = await check_website_only(ctx, check)
+        await write_result(ctx, result)
+
+
+async def read_last_n_results(ctx: Context, n: int) -> None:
+    async for result in ctx.results_socket.read_last_n(n):
         print(result)
 
 
@@ -51,7 +75,8 @@ async def read_last_100_results(ctx: Context) -> None:
 
 
 async def main() -> None:
-    assert len(sys.argv) in (3, 4), "Usage: python -m website_monitor.check_quick <opr> <url> [regex]"
+    assert len(sys.argv) in (
+        3, 4), "Usage: python -m website_monitor.check_quick <opr> <url> [regex]"
 
     opr = sys.argv[1]
     url = sys.argv[2]
@@ -59,14 +84,22 @@ async def main() -> None:
 
     ctx = Context(
         session=aiohttp.ClientSession(),
-        checks_socket=await WebsiteCheckSocketPostgres.create(conf.get_postgres_conninfo()),
-        results_socket=await CheckResultSocketPostgres.create(conf.get_postgres_conninfo()),
+        checks_socket=WebsiteCheckSocketPostgres(conf.get_postgres_conninfo()),
+        results_socket=CheckResultSocketPostgres(conf.get_postgres_conninfo()),
     )
 
     async with ctx:
         match opr:
-            case "write_check":
-                await write_check(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
+            case "upsert_check":
+                await upsert_check(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
+
+            case "read_all_checks":
+                await read_all_checks(ctx)
+
+            case "delete_check":
+                await delete_check(ctx, url)
+
+            ###
 
             case "check_website_only":
                 await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
@@ -75,8 +108,11 @@ async def main() -> None:
                 result = await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
                 await write_result(ctx, result)
 
-            case "read_last_100_results":
-                await read_last_100_results(ctx)
+            case "check_all_websites_and_write":
+                await check_all_websites_and_write(ctx)
+
+            case __ResultsParams.READ_MAX_RESULTS_OPR:
+                await read_last_n_results(ctx, __ResultsParams.READ_MAX_RESULTS)
 
             case _:
                 raise ValueError(f"Unknown opr: {opr}")

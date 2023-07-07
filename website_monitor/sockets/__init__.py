@@ -2,16 +2,25 @@ from abc import ABC, abstractmethod
 from typing import AsyncIterator
 from pydantic.types import PositiveInt
 
-from website_monitor.types import CheckResult
+from website_monitor.types import WebsiteCheck, CheckResult
 
 
 class WebsiteCheckSocket(ABC):
     @abstractmethod
-    async def write(self, check: CheckResult) -> None:
+    async def upsert(self, check: WebsiteCheck) -> None:
+        """
+        Upsert a check into the socket's underlying storage.
+        That is, if the check's URL already exists, update the regex.
+        Otherwise, insert/add/write the check.
+        """
         ...
 
     @abstractmethod
-    async def read_last_n(self, n: PositiveInt) -> AsyncIterator[AsyncIterator]:
+    async def read_last_n(self, n: PositiveInt) -> AsyncIterator[CheckResult]:
+        ...
+
+    @abstractmethod
+    async def delete(self, url: str) -> None:
         ...
 
     @abstractmethod

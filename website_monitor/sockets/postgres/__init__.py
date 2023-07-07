@@ -9,21 +9,19 @@ from psycopg import sql
 
 
 class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
-    __pool: AsyncConnectionPool
-
-    @classmethod
-    async def create(cls, conninfo: str) -> "WebsiteCheckSocket":
-        self = cls()
+    def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
-        return self
 
-    async def write(self, check: WebsiteCheck) -> None:
+    async def upsert(self, check: WebsiteCheck) -> None:
         async with self.__pool.connection() as aconn:
             await aconn.execute(
                 """
             INSERT INTO WebsiteCheck
             (url, regex)
-            VALUES (%s, %s);""",
+            VALUES (%s, %s)
+            ON CONFLICT (url) DO UPDATE
+                SET regex = EXCLUDED.regex;
+            """,
                 (check.url, check.regex),
             )
 
@@ -33,7 +31,6 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
                 sql.SQL(
                     """
                 SELECT * FROM WebsiteCheck
-                ORDER BY id DESC
                 LIMIT {};""".format(
                         n
                     )
@@ -44,18 +41,22 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
             async for row in acur:
                 yield WebsiteCheck.create_without_validation(row.url, row.regex)
 
+    async def delete(self, url: str) -> None:
+        async with self.__pool.connection() as aconn:
+            await aconn.execute(
+                """
+            DELETE FROM WebsiteCheck
+            WHERE url = %s;""",
+                (url,),
+            )
+
     async def close(self) -> None:
         return await self.__pool.close()
 
 
 class CheckResultSocketPostgres(CheckResultSocket):
-    __pool: AsyncConnectionPool
-
-    @classmethod
-    async def create(cls, conninfo: str) -> "CheckResultSocket":
-        self = cls()
+    def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
-        return self
 
     async def write(self, result: CheckResult) -> None:
         async with self.__pool.connection() as aconn:
@@ -76,7 +77,7 @@ class CheckResultSocketPostgres(CheckResultSocket):
                     result.other_error,
                     #
                     result.response_status,
-                    result.regex_match,
+                    result.regex_match_to_bool_or_none(),
                 ),
             )
 

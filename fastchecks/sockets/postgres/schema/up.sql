@@ -42,4 +42,4 @@ CREATE TABLE
 
 
 -- Note: we don't set up a foreign key on the url. We might have check results for websites that were never stored or are no longer being checked.
-CREATE INDEX result_url_idx ON CheckResult USING hash (url);
+CREATE INDEX result__url__idx ON CheckResult USING hash (url);

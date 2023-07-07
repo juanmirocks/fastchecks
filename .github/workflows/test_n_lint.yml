@@ -35,6 +35,9 @@ jobs:
         run: |
           poetry run poe test
 
+      - name: Send coverage results to coveralls.io
+        uses: coverallsapp/github-action@v2
+
       - name: Lint with multiple tasks, including security checks
         run: |
           poetry run poe lint_sec

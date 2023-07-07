@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.1.0"
+version = "0.1.0-dev"
 description = ""
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
@@ -12,8 +12,6 @@ python = "^3.11"
 aiohttp = "^3.8.4"
 psycopg = { extras = ["binary", "pool"], version = "^3.1.9" }
 pydantic = "^2.0.1"
-pytest-xdist = "^3.3.1"
-pytest-cov = "^4.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -24,6 +22,8 @@ black = "^23.3.0"
 pytest = "^7.4.0"
 pytest-asyncio = "^0.21.0"
 poethepoet = "^0.20.0"
+pytest-cov = "^4.1.0"
+pytest-xdist = "^3.3.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -43,7 +43,7 @@ skips = ["*/test_*.py"]
 # format code
 fmt = "black ."
 # run tests with coverage -- for now do not use xdist's `-n auto` option
-test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=html:.cov/html"
+test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=lcov:.cov/coverage.lcov --cov-report=html:.cov/html"
 lint_sec = "bandit -c pyproject.toml -r ."
 lint_errors = "pyflakes ."
 lint_types = "mypy ."

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.1.0-wip"
+version = "0.1.0-dev"
 description = ""
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"

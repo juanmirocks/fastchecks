@@ -36,6 +36,7 @@ jobs:
           poetry run poe test
 
       - name: Send coverage results to coveralls.io
+        if: github.repository == "juanmirocks/fastchecks"
         uses: coverallsapp/github-action@v2
 
       - name: Lint with multiple tasks, including security checks

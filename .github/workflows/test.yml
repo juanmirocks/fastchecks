@@ -1,0 +1,36 @@
+name: Test (& Lint) Python application on every push
+
+on: [push]
+
+permissions: {}
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+        poetry-version: ["1.5"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install poetry ${{ matrix.poetry-version }}
+        run: |
+          pipx install poetry==${{ matrix.poetry-version }}
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: Test with pytest
+        run: |
+          pytest

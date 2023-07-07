@@ -4,13 +4,13 @@ version = "0.1.0"
 description = ""
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
-packages = [{include = "website_monitor"}]
+packages = [{ include = "website_monitor" }]
 
 
 [tool.poetry.dependencies]
 python = "^3.11"
 aiohttp = "^3.8.4"
-psycopg = {extras = ["binary", "pool"], version = "^3.1.9"}
+psycopg = { extras = ["binary", "pool"], version = "^3.1.9" }
 pydantic = "^2.0.1"
 
 

@@ -40,7 +40,10 @@ skips = ["*/test_*.py"]
 
 # poethepoet: python & shell scripts to run within poetry: https://poethepoet.natn.io/
 [tool.poe.tasks]
-fmt = "black ."  # format code
+# format code
+fmt = "black ."
+# run tests with coverage -- for now do not use xdist's `-n auto` option
+test = "pytest --cov=website_monitor --cov-report=term-missing --cov-report=html:.cov/html"
 lint_sec = "bandit -c pyproject.toml -r ."
 lint_errors = "pyflakes ."
 lint_types = "mypy ."

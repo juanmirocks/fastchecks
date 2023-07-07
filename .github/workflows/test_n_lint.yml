@@ -31,9 +31,9 @@ jobs:
         run: |
           poetry install --no-interaction --no-root
 
-      - name: Test with pytest
+      - name: Test with pytest & pytest-cov
         run: |
-          poetry run pytest
+          poetry run poe test
 
       - name: Lint with multiple tasks, including security checks
         run: |

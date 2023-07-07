@@ -1,8 +1,6 @@
 import logging
 import re
-import traceback
 import aiohttp
-from urllib.parse import urlparse
 
 from website_monitor import conf
 from website_monitor.types import CheckResult, WebsiteCheck

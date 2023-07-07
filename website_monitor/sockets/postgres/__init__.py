@@ -1,5 +1,3 @@
-from typing import AsyncIterator
-
 from pydantic import PositiveInt
 from website_monitor.types import CheckResult, WebsiteCheck
 from website_monitor.sockets import CheckResultSocket, WebsiteCheckSocket

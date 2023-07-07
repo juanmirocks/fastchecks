@@ -40,3 +40,4 @@ skips = ["*/test_*.py"]
 [tool.poe.tasks]
 fmt = "black ."  # format code
 lint_sec = "bandit -c pyproject.toml -r ."
+lint_errors = "pyflakes ."

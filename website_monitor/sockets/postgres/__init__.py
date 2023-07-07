@@ -82,16 +82,13 @@ class CheckResultSocketPostgres(CheckResultSocket):
 
     async def read_last_n(self, n: PositiveInt):
         async with self.__pool.connection() as aconn:
-            acur = await aconn.execute(
-                sql.SQL(
-                    """
+            query_raw = """
                 SELECT * FROM CheckResult
                 ORDER BY timestamp_start DESC
-                LIMIT {};""".format(
-                        n
-                    )
-                )
-            )
+                LIMIT {};"""
+            query_safe = query_raw.format(n)
+
+            acur = await aconn.execute(sql.SQL(query_safe))
 
             acur.row_factory = namedtuple_row
             async for row in acur:

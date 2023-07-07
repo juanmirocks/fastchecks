@@ -19,7 +19,7 @@ jobs:
 
       - name: Install poetry ${{ matrix.poetry-version }}
         run: |
-          pipx install poetry==${{ matrix.poetry-version }}
+          pipx install "poetry~=${{ matrix.poetry-version }}"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4

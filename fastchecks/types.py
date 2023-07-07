@@ -1,8 +1,8 @@
 import datetime
 from pydantic import BaseModel
 
-from website_monitor.util import validate_regex, validate_url
-from website_monitor import require
+from fastchecks.util import validate_regex, validate_url
+from fastchecks import require
 
 
 # We use Pydantic classes for type safety and because they could be handy in the future for de/serialization.

@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "website_monitor"
+name = "fastchecks"
 version = "0.1.0"
 description = ""
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
-packages = [{ include = "website_monitor" }]
+packages = [{ include = "fastchecks" }]
 
 
 [tool.poetry.dependencies]
@@ -43,7 +43,7 @@ skips = ["*/test_*.py"]
 # format code
 fmt = "black ."
 # run tests with coverage -- for now do not use xdist's `-n auto` option
-test = "pytest --cov=website_monitor --cov-report=term-missing --cov-report=html:.cov/html"
+test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=html:.cov/html"
 lint_sec = "bandit -c pyproject.toml -r ."
 lint_errors = "pyflakes ."
 lint_types = "mypy ."

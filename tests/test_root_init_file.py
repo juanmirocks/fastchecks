@@ -1,6 +1,6 @@
 import pytest
 
-from website_monitor import require
+from fastchecks import require
 
 
 def test_require_on_true():

@@ -1,6 +1,6 @@
 from pydantic import PositiveInt
-from website_monitor.types import CheckResult, WebsiteCheck
-from website_monitor.sockets import CheckResultSocket, WebsiteCheckSocket
+from fastchecks.types import CheckResult, WebsiteCheck
+from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import namedtuple_row
 from psycopg import sql

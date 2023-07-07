@@ -2,9 +2,9 @@ import logging
 import re
 import aiohttp
 
-from website_monitor import conf
-from website_monitor.types import CheckResult, WebsiteCheck
-from website_monitor.util import (
+from fastchecks import conf
+from fastchecks.types import CheckResult, WebsiteCheck
+from fastchecks.util import (
     get_utcnow,
     get_utcnow_time_difference_seconds,
     is_likely_text_based_body,

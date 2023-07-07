@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import AsyncIterator
 from pydantic.types import PositiveInt
 
-from website_monitor.types import WebsiteCheck, CheckResult
+from fastchecks.types import WebsiteCheck, CheckResult
 
 
 class WebsiteCheckSocket(ABC):

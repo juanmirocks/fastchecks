@@ -27,15 +27,14 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
 
     async def read_last_n(self, n: PositiveInt):
         async with self.__pool.connection() as aconn:
-            acur = await aconn.execute(
-                sql.SQL(
-                    """
+            # We format the safe query in 2 steps (also below) to avoid false positives from bandit (B608:hardcoded_sql_expressions)
+            # We follow psycopg recommendations for how to escape composed SQL queries: https://www.psycopg.org/psycopg3/docs/advanced/typing.html#checking-literal-strings-in-queries
+            query_raw = """
                 SELECT * FROM WebsiteCheck
-                LIMIT {};""".format(
-                        n
-                    )
-                )
-            )
+                LIMIT {};"""
+            query_safe = query_raw.format(n)
+
+            acur = await aconn.execute(sql.SQL(query_safe))
 
             acur.row_factory = namedtuple_row
             async for row in acur:

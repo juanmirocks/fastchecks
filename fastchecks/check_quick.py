@@ -22,7 +22,7 @@ class Context(NamedTuple):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        await asyncio.gather(self.session.close(), self.results_socket.close())
+        await asyncio.gather(self.session.close(), self.checks_socket.close(), self.results_socket.close())
 
 
 # -----------------------------------------------------------------------------

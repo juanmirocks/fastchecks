@@ -25,14 +25,14 @@ class ChecksRunnerContext:
         require(not results_socket.is_closed(), "Results socket must be open")
 
         self._session = session
-        self._checks_socket = checks_socket
-        self._results_socket = results_socket
+        self.checks_socket = checks_socket
+        self.results_socket = results_socket
 
     async def __aenter__(self) -> "ChecksRunnerContext":
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        await asyncio.gather(self._session.close(), self._checks_socket.close(), self._results_socket.close())
+        await asyncio.gather(self._session.close(), self.checks_socket.close(), self.results_socket.close())
 
     async def close(self) -> None:
         await self.__aexit__(None, None, None)
@@ -50,14 +50,14 @@ class ChecksRunnerContext:
     # -----------------------------------------------------------------------------
 
     async def upsert_check(self, check: WebsiteCheck) -> None:
-        await self._checks_socket.upsert(check)
+        await self.checks_socket.upsert(check)
 
     async def read_all_checks(self) -> None:
-        async for check in self._checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+        async for check in self.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
             print(check)
 
     async def delete_check(self, url: str) -> None:
-        await self._checks_socket.delete(url)
+        await self.checks_socket.delete(url)
 
     # -----------------------------------------------------------------------------
 
@@ -67,13 +67,13 @@ class ChecksRunnerContext:
         return ret
 
     async def write_result(self, result: CheckResult) -> None:
-        await self._results_socket.write(result)
+        await self.results_socket.write(result)
 
     async def check_all_websites_and_write(self) -> None:
-        async for check in self._checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+        async for check in self.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
             result = await self.check_website_only(check)
             await self.write_result(result)
 
     async def read_last_n_results(self, n: int) -> None:
-        async for result in self._results_socket.read_last_n(n):
+        async for result in self.results_socket.read_last_n(n):
             print(result)

@@ -34,6 +34,10 @@ build-backend = "poetry.core.masonry.api"
 line-length = 120
 
 
+[tool.mypy]
+files = ["fastchecks", "tests"]
+
+
 [tool.bandit.assert_used]
 skips = ["*/test_*.py"]
 

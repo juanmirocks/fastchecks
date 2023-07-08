@@ -32,6 +32,8 @@ jobs:
           poetry install --no-interaction --no-root
 
       - name: Test with pytest & pytest-cov
+        env:
+          FC_TEST_POSTGRES_DEFAULT_DB_CONNINFO: ${{ secrets.FC_TEST_POSTGRES_DEFAULT_DB_CONNINFO }}
         run: |
           poetry run poe test
 

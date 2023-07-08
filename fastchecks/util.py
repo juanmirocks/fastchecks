@@ -1,6 +1,6 @@
 import datetime
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 import sys
 import ctypes
 
@@ -46,6 +46,30 @@ def validate_url(url: str, raise_error: bool = True) -> str | None:
     else:
         # ret could have been (without exception) the empty string (which is also falsy), but we return None to avoid confusions
         return None
+
+
+def replace_url_last_segment(url: str, new_segment: str) -> str:
+    """
+    Example behavior (new_segment = "fastchecks"), urls:
+    * "postgresql://localhost/postgres" -> "postgresql://localhost/fastchecks"
+    * "postgresql://localhost/postgres?sslmode=require" -> "postgresql://localhost/fastchecks?sslmode=require"
+    * "postgresql://username:password@localhost:5432/postgres?sslmode=require" -> "postgresql://username:password@localhost:5432/fastchecks?sslmode=require"
+    """
+    parsed_url = urlparse(url)
+    path_parts = parsed_url.path.split("/")
+    path_parts[-1] = new_segment
+    modified_path = "/".join(path_parts)
+
+    modified_url = urlunparse((
+        parsed_url.scheme,
+        parsed_url.netloc,
+        modified_path,
+        parsed_url.params,
+        parsed_url.query,
+        parsed_url.fragment
+    ))
+
+    return modified_url
 
 
 def validate_regex(regex: str, raise_error: bool = True) -> re.Pattern | None:

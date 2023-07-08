@@ -18,11 +18,9 @@ def get_typed_envar(
         return conversion(value)
 
 
-def read_envar_value(
-    envar_name: str, envar_value: _CONVERSION_OUTPUT | None, raise_error_if_none: bool = True
-) -> _CONVERSION_OUTPUT:
+def read_envar_value(envar_name: str, envar_value: _CONVERSION_OUTPUT | None) -> _CONVERSION_OUTPUT:
     """
-    Read cached value of the given environment variable, or, optionally, raise ValueError if the environment variable is not set.
+    Read cached value of the given environment variable, or raise ValueError if the environment variable is not set.
     """
     if envar_value is None:
         raise ValueError(f"Environment variable is not set: {envar_name}")
@@ -45,4 +43,4 @@ def get_postgres_conninfo() -> str:
     """
     Return the Postgres local connection string, or raise ValueError if the environment variable is not set.
     """
-    return read_envar_value("_POSTGRES_CONNINFO", _POSTGRES_CONNINFO, raise_error_if_none=True)
+    return read_envar_value("_POSTGRES_CONNINFO", _POSTGRES_CONNINFO)

@@ -39,15 +39,15 @@ async def setup_module():
     # We need auto-commit mode to run the CREATE DATABASE command
     with psycopg.connect(tconf.POSTGRES_DEFAULT_DB_CONNINFO, autocommit=True) as conn:
         # Debug Postgres version
-        print(conn.execute("SELECT version()"))
+        print(conn.execute("SELECT version()").fetchone())
 
         query_tmpl = "CREATE DATABASE {}"
         query_safe = sql.SQL(query_tmpl).format(sql.Identifier(TEST_DBNAME))
-        print(conn.execute(query_safe))
+        print(conn.execute(query_safe).statusmessage)
 
     # Init the SQL schema
     with psycopg.connect(TEST_CONNINFO) as conn:
-        print(conn.execute(init_sql))
+        print(conn.execute(init_sql).rowcount)
 
     CTX = ChecksRunnerContext.init_with_postgres(TEST_CONNINFO)
 
@@ -74,7 +74,7 @@ async def setup_module():
             # ref: https://stackoverflow.com/a/17461681/341320
             query_tmpl = "DROP DATABASE {} WITH (FORCE)"
             query_safe = sql.SQL(query_tmpl).format(sql.Identifier(TEST_DBNAME))
-            print(conn.execute(query_safe))
+            print(conn.execute(query_safe).statusmessage)
     except Exception as e:
         logging.error(f"Exception when dropping the test db ({TEST_DBNAME}): {e}", exc_info=True)
 

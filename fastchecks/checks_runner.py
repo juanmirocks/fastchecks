@@ -16,6 +16,7 @@ class ChecksRunnerContext:
 
     The backends/sockets for checks and results could potentially be different (e.g. Redis or even a simple text file for checks, Postgres for results).
     """
+
     def __init__(
         self, session: aiohttp.ClientSession, checks_socket: WebsiteCheckSocket, results_socket: CheckResultSocket
     ) -> None:

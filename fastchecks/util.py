@@ -60,14 +60,9 @@ def replace_url_last_segment(url: str, new_segment: str) -> str:
     path_parts[-1] = new_segment
     modified_path = "/".join(path_parts)
 
-    modified_url = urlunparse((
-        parsed_url.scheme,
-        parsed_url.netloc,
-        modified_path,
-        parsed_url.params,
-        parsed_url.query,
-        parsed_url.fragment
-    ))
+    modified_url = urlunparse(
+        (parsed_url.scheme, parsed_url.netloc, modified_path, parsed_url.params, parsed_url.query, parsed_url.fragment)
+    )
 
     return modified_url
 

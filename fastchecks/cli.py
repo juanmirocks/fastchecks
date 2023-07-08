@@ -12,8 +12,7 @@ class __ResultsParams:
 
 
 async def main() -> None:
-    require(len(sys.argv) in (3, 4),
-            "Usage: python -m fastchecks.cli <opr> <url> [regex]")
+    require(len(sys.argv) in (3, 4), "Usage: python -m fastchecks.cli <opr> <url> [regex]")
 
     opr = sys.argv[1]
     url = sys.argv[2]

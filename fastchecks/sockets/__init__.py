@@ -7,6 +7,10 @@ from fastchecks.types import WebsiteCheck, CheckResult
 
 class WebsiteCheckSocket(ABC):
     @abstractmethod
+    def is_closed(self) -> bool:
+        ...
+
+    @abstractmethod
     async def upsert(self, check: WebsiteCheck) -> None:
         """
         Upsert a check into the socket's underlying storage.
@@ -35,6 +39,10 @@ class WebsiteCheckSocket(ABC):
 
 
 class CheckResultSocket(ABC):
+    @abstractmethod
+    def is_closed(self) -> bool:
+        ...
+
     @abstractmethod
     async def write(self, result: CheckResult) -> None:
         ...

@@ -10,6 +10,9 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
     def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
 
+    def is_closed(self) -> bool:
+        return self.__pool.closed
+
     async def upsert(self, check: WebsiteCheck) -> None:
         async with self.__pool.connection() as aconn:
             await aconn.execute(
@@ -54,6 +57,9 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
 class CheckResultSocketPostgres(CheckResultSocket):
     def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
+
+    def is_closed(self) -> bool:
+        return self.__pool.closed
 
     async def write(self, result: CheckResult) -> None:
         async with self.__pool.connection() as aconn:

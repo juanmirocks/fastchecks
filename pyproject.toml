@@ -50,7 +50,7 @@ fmt = "black ."
 test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=lcov:.cov/coverage.lcov"  # HTML possible too: --cov-report=html:.cov/html"
 lint_sec = "bandit -c pyproject.toml -r ."
 lint_errors = "pyflakes ."
-lint_types = "mypy ."
-lint_types_strict = "mypy --strict ."
-lint_all = ["lint_sec", "lint_errors"]  # Exclude "lint_types" for now
+lint_types.shell = "mypy || true"  # For now ignore possible non 0 exit code; but at least report
+lint_types_strict.shell = "mypy --strict || true"
+lint_all = ["lint_sec", "lint_errors", "lint_types"]
 test_n_lint = ["test", "lint_all"]

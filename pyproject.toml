@@ -48,3 +48,5 @@ lint_sec = "bandit -c pyproject.toml -r ."
 lint_errors = "pyflakes ."
 lint_types = "mypy ."
 lint_types_strict = "mypy --strict ."
+lint_all = ["lint_sec", "lint_errors"]  # Exclude "lint_types" for now
+test_n_lint = ["test", "lint_all"]

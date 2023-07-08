@@ -41,5 +41,4 @@ jobs:
 
       - name: Lint with multiple tasks, including security checks
         run: |
-          poetry run poe lint_sec
-          poetry run poe lint_errors
+          poetry run poe lint_all

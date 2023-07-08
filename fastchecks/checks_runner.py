@@ -34,6 +34,9 @@ class ChecksRunnerContext:
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await asyncio.gather(self._session.close(), self._checks_socket.close(), self._results_socket.close())
 
+    async def close(self) -> None:
+        await self.__aexit__(None, None, None)
+
     # -----------------------------------------------------------------------------
 
     @classmethod

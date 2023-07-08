@@ -32,7 +32,7 @@ async def setup_module():
     global TEST_DBNAME, TEST_CONNINFO, CTX
 
     (TEST_DBNAME, TEST_CONNINFO) = tconf.gen_new_test_postgres_conninfo()
-    print(f"setup & run new db: {TEST_CONNINFO}")
+    print(f"setup & run new db: {TEST_DBNAME}")
 
     init_sql = resources.files(schema).joinpath("up.sql").read_text()
 
@@ -66,7 +66,7 @@ async def setup_module():
 
     try:
         # We need auto-commit mode to run the DROP DATABASE command
-        print(f"teardown & drop db: {TEST_CONNINFO}")
+        print(f"teardown & drop db: {TEST_DBNAME}")
         with psycopg.connect(tconf.POSTGRES_DEFAULT_DB_CONNINFO, autocommit=True) as conn:
             # FORCE to avoid error "database is being accessed by other users"
             # This should not happen since we closed the context above, but just in case

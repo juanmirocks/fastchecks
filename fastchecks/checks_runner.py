@@ -1,121 +1,75 @@
 import asyncio
-from typing import NamedTuple
 import aiohttp
-import sys
 
 from fastchecks.check import check_website
 from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
 from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
-from fastchecks import conf, require, util
+from fastchecks import require, util
 from fastchecks.types import CheckResult, WebsiteCheck
 
 # -----------------------------------------------------------------------------
 
 
-class Context(NamedTuple):
-    session: aiohttp.ClientSession
-    # Potentially we could have different backends for checks and results (e.g. Redis for checks, Postgres for results).
-    checks_socket: WebsiteCheckSocket
-    results_socket: CheckResultSocket
+class ChecksRunnerContext:
+    """
+    Holds the state context to be able to run checks and store results.
 
-    async def __aenter__(self) -> "Context":
+    The backends/sockets for checks and results could potentially be different (e.g. Redis or even a simple text file for checks, Postgres for results).
+    """
+    def __init__(
+        self, session: aiohttp.ClientSession, checks_socket: WebsiteCheckSocket, results_socket: CheckResultSocket
+    ) -> None:
+        require(not session.closed, "Session must be open")
+        require(not checks_socket.is_closed(), "Checks socket must be open")
+        require(not results_socket.is_closed(), "Results socket must be open")
+
+        self._session = session
+        self._checks_socket = checks_socket
+        self._results_socket = results_socket
+
+    async def __aenter__(self) -> "ChecksRunnerContext":
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        await asyncio.gather(self.session.close(), self.checks_socket.close(), self.results_socket.close())
+        await asyncio.gather(self._session.close(), self._checks_socket.close(), self._results_socket.close())
 
+    # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
+    @classmethod
+    def init_with_postgres(cls, postgres_conninfo: str) -> "ChecksRunnerContext":
+        return cls(
+            session=aiohttp.ClientSession(),
+            checks_socket=WebsiteCheckSocketPostgres(postgres_conninfo),
+            results_socket=CheckResultSocketPostgres(postgres_conninfo),
+        )
 
+    # -----------------------------------------------------------------------------
 
-async def upsert_check(ctx: Context, check: WebsiteCheck) -> None:
-    await ctx.checks_socket.upsert(check)
+    async def upsert_check(self, check: WebsiteCheck) -> None:
+        await self._checks_socket.upsert(check)
 
+    async def read_all_checks(self) -> None:
+        async for check in self._checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+            print(check)
 
-async def read_all_checks(ctx: Context) -> None:
-    async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
-        print(check)
+    async def delete_check(self, url: str) -> None:
+        await self._checks_socket.delete(url)
 
+    # -----------------------------------------------------------------------------
 
-async def delete_check(ctx: Context, url: str) -> None:
-    await ctx.checks_socket.delete(url)
+    async def check_website_only(self, check: WebsiteCheck) -> CheckResult:
+        ret = await check_website(self._session, check)
+        print(ret)
+        return ret
 
+    async def write_result(self, result: CheckResult) -> None:
+        await self._results_socket.write(result)
 
-# -----------------------------------------------------------------------------
+    async def check_all_websites_and_write(self) -> None:
+        async for check in self._checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
+            result = await self.check_website_only(check)
+            await self.write_result(result)
 
-
-class __ResultsParams:
-    READ_MAX_RESULTS = 100
-    # To pattern match a variable's value (below), we need to use a class/enum; see: https://peps.python.org/pep-0636/#matching-against-constants-and-enums
-    READ_MAX_RESULTS_OPR = f"read_last_{READ_MAX_RESULTS}_results"
-
-
-async def check_website_only(ctx: Context, check: WebsiteCheck) -> CheckResult:
-    ret = await check_website(ctx.session, check)
-    print(ret)
-    return ret
-
-
-async def write_result(ctx: Context, result: CheckResult) -> None:
-    await ctx.results_socket.write(result)
-
-
-async def check_all_websites_and_write(ctx: Context) -> None:
-    async for check in ctx.checks_socket.read_last_n(util.PRACTICAL_MAX_INT):
-        result = await check_website_only(ctx, check)
-        await write_result(ctx, result)
-
-
-async def read_last_n_results(ctx: Context, n: int) -> None:
-    async for result in ctx.results_socket.read_last_n(n):
-        print(result)
-
-
-# -----------------------------------------------------------------------------
-
-
-async def main() -> None:
-    require(len(sys.argv) in (3, 4), "Usage: python -m fastchecks.check_quick <opr> <url> [regex]")
-
-    opr = sys.argv[1]
-    url = sys.argv[2]
-    regex_str_opt = sys.argv[3] if len(sys.argv) == 4 else None
-
-    ctx = Context(
-        session=aiohttp.ClientSession(),
-        checks_socket=WebsiteCheckSocketPostgres(conf.get_postgres_conninfo()),
-        results_socket=CheckResultSocketPostgres(conf.get_postgres_conninfo()),
-    )
-
-    async with ctx:
-        match opr:
-            case "upsert_check":
-                await upsert_check(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
-
-            case "read_all_checks":
-                await read_all_checks(ctx)
-
-            case "delete_check":
-                await delete_check(ctx, url)
-
-            ###
-
-            case "check_website_only":
-                await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
-
-            case "check_website_and_write":
-                result = await check_website_only(ctx, WebsiteCheck.create_with_validation(url, regex_str_opt))
-                await write_result(ctx, result)
-
-            case "check_all_websites_and_write":
-                await check_all_websites_and_write(ctx)
-
-            case __ResultsParams.READ_MAX_RESULTS_OPR:
-                await read_last_n_results(ctx, __ResultsParams.READ_MAX_RESULTS)
-
-            case _:
-                raise ValueError(f"Unknown opr: {opr}")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    async def read_last_n_results(self, n: int) -> None:
+        async for result in self._results_socket.read_last_n(n):
+            print(result)

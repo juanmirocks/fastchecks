@@ -47,7 +47,7 @@ skips = ["*/test_*.py"]
 # format code
 fmt = "black ."
 # run tests with coverage -- for now do not use xdist's `-n auto` option
-test = "pytest --last-failed"
+test = "pytest"
 test_n_cov = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=lcov:.cov/coverage.lcov"  # HTML possible too: --cov-report=html:.cov/html"
 lint_sec = "bandit -c pyproject.toml -r ."
 lint_errors = "pyflakes ."

@@ -91,14 +91,6 @@ async def check_website(
         response_ftr.close()
 
 
-__ARBITRARY_TOO_BIG_CONTENT_LENGTH = 100000
-"""
-Arbitrary value to consider a response's content length as too big to be read in memory.
-
-For reference, the size of https://python.org is, as of 2023-07-06, 49943 bytes.
-"""
-
-
 async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientResponse) -> str | bool | None:
     """
     Search for a regex pattern in the response's content (assumed to be in most cases HTML).
@@ -117,13 +109,17 @@ async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientRes
     * The text body searched is raw HTML (in most cases), not the HTML's text. If we want to search the text of the HTML (or other text-based format) only, we would need a corresponding parser.
     """
     if is_likely_text_based_body(response) and is_content_length_less_than(
-        response, length=__ARBITRARY_TOO_BIG_CONTENT_LENGTH, allow_none_content_length=True
+        response, length=conf.TOO_BIG_CONTENT_LENGTH_KB, allow_none_content_length=True
     ):
         content = await response.text()
         match_opt = re.search(regex, content)
+
         if match_opt:
             return match_opt[0]
         else:
             return False
     else:
+        logging.warning(
+            f"The regex will not be checked because the response's body might be unsafe to read in memory (too big or not text-based), for url: {response.url}"
+        )
         return None

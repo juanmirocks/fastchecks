@@ -1,8 +1,9 @@
 import asyncio
 import pytest
 import pytest_asyncio
-from fastchecks.checks_runner import ChecksRunnerContext
-from fastchecks.types import WebsiteCheck
+from fastchecks import conf
+from fastchecks.runner import ChecksRunnerContext
+from fastchecks.types import WebsiteCheckScheduled, WebsiteCheck
 from fastchecks.util import PRACTICAL_MAX_INT, async_itr_to_list
 from tests import tconf
 from fastchecks.sockets.postgres import schema
@@ -15,6 +16,9 @@ import logging
 TEST_DBNAME: str
 TEST_CONNINFO: str
 CTX: ChecksRunnerContext
+
+# Allow minimum of 1 interval second for tests for speed
+conf.MIN_INTERVAL_SECONDS = 1
 
 
 # See trick for pytest async: https://stackoverflow.com/a/56238383/341320
@@ -51,7 +55,7 @@ async def setup_module():
     with psycopg.connect(TEST_CONNINFO) as conn:
         print(conn.execute(init_sql).rowcount)
 
-    CTX = ChecksRunnerContext.init_with_postgres(TEST_CONNINFO)
+    CTX = ChecksRunnerContext.init_with_postgres(TEST_CONNINFO, default_interval_seconds=1)
 
     yield "initialized"
 
@@ -92,25 +96,35 @@ async def test_simple_checks_workflow(setup_module):
     global CTX
 
     #
-    # 01: The DB is empty at the beginning
+    # 00: The DB MUST be empty at the beginning
     #
     checks00 = await async_itr_to_list(await CTX.checks.read_all())
     results00 = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     assert len(checks00) == 0, f"{checks00} - {type(checks00)}"
     assert len(results00) == 0, f"{results00} - {type(results00)}"
+    # We expect an error since there are no checks yet
+    with pytest.raises(ValueError):
+        await CTX.run_checks_until_stopped_in_foreground()
 
     #
-    # 02: We insert 1 check; we expect to read back 1 check
+    # 01: We insert 1 check
+    #     We expect to read back 1 check
     #
-    await CTX.checks.upsert(WebsiteCheck(url="https://python.org", regex="Python .* lets you work quickly"))
+    await CTX.checks.upsert(
+        WebsiteCheckScheduled.with_check(
+            WebsiteCheck.with_validation(url="https://python.org", regex="Python .* lets you work quickly"),
+            interval_seconds=2,
+        )
+    )
     #
     checks01 = await async_itr_to_list(await CTX.checks.read_all())
     assert len(checks01) == 1, f"{checks01} - {type(checks01)}"
 
     #
-    # 03: We run & store all checks; we expect to see 1 check and 1 result
+    # 02: We run & store all checks
+    #     We expect to see 1 check and 1 result
     #
-    results02a = await async_itr_to_list(CTX.check_all_websites_and_write())
+    results02a = await async_itr_to_list(CTX.check_once_all_websites_n_write())
     # Another way to get the same result, just to be sure, however the result read from the DB no longer contains the matched regex text
     results02b = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     assert len(results02a) == 1, f"{results02a} - {type(results02a)}"
@@ -122,11 +136,16 @@ async def test_simple_checks_workflow(setup_module):
     assert results02b[0].is_regex_match_truthy() and results02b[0].regex_match == True
 
     #
-    # 04: We insert 1 more check, and then run & store all checks; we expect to see 2 checks and 3 total results
+    # 03: We insert 1 more check, and then run & store all checks
+    #     we expect to see 2 checks and 3 total results
     #
-    await CTX.checks.upsert(WebsiteCheck(url="https://example.org", regex="Example D[a-z]+"))
+    await CTX.checks.upsert(
+        WebsiteCheckScheduled.with_check(
+            WebsiteCheck.with_validation(url="https://example.org", regex="Example D[a-z]+"), interval_seconds=1
+        )
+    )
     checks03 = await async_itr_to_list(await CTX.checks.read_all())
-    results03_only_last_2_results = await async_itr_to_list(CTX.check_all_websites_and_write())
+    results03_only_last_2_results = await async_itr_to_list(CTX.check_once_all_websites_n_write())
     results03_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     #
     assert len(checks03) == 2, f"{checks03} - {type(checks03)}"
@@ -136,11 +155,16 @@ async def test_simple_checks_workflow(setup_module):
     assert len(results03_all_results) == 3, f"{results03_all_results} - {type(results03_all_results)}"
 
     #
-    # 05: We update a past check, and then run & store all checks; we expect to see 2 checks (still) and 5 total results
+    # 04: We update a past check, and then run & store all checks
+    #     We expect to see 2 checks (still) and 5 total results (3 for python.org; 2 for example.org)
     #
-    await CTX.checks.upsert(WebsiteCheck(url="https://example.org", regex=None))
+    await CTX.checks.upsert(
+        WebsiteCheckScheduled.with_check(
+            WebsiteCheck.with_validation(url="https://example.org", regex=None), interval_seconds=None
+        )
+    )
     checks04 = await async_itr_to_list(await CTX.checks.read_all())
-    results04_only_last_2_results = await async_itr_to_list(CTX.check_all_websites_and_write())
+    results04_only_last_2_results = await async_itr_to_list(CTX.check_once_all_websites_n_write())
     results04_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     #
     assert len(checks04) == 2, f"{checks04} - {type(checks04)}"
@@ -148,3 +172,34 @@ async def test_simple_checks_workflow(setup_module):
         len(results04_only_last_2_results) == 2
     ), f"{results04_only_last_2_results} - {type(results04_only_last_2_results)}"
     assert len(results04_all_results) == 5, f"{results04_all_results} - {type(results04_all_results)}"
+    #
+    results04_python_org = list(filter(lambda r: r.check.url == "https://python.org", results04_all_results))
+    results04_example_org = list(filter(lambda r: r.check.url == "https://example.org", results04_all_results))
+    assert len(results04_python_org) == 3, f"{results04_python_org}"
+    assert len(results04_example_org) == 2, f"{results04_example_org}"
+
+    #
+    # 05: Run scheduled checks in the background for some then seconds, then stop
+    #     We expect to see more results, specifically more "https://example.org" results since its interval is lower despite starting with an advantage
+    #
+    async with asyncio.timeout(delay=4):  # stop after given delay in seconds
+        try:
+            await CTX.run_checks_until_stopped_in_foreground()
+        except asyncio.CancelledError:
+            pass  # fine, expected :-)
+
+    results05_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
+
+    assert len(results05_all_results) > len(
+        results04_all_results
+    ), f"{results05_all_results} - {type(results05_all_results)}"
+
+    results05_python_org = list(filter(lambda r: r.check.url == "https://python.org", results05_all_results))
+    results05_example_org = list(filter(lambda r: r.check.url == "https://example.org", results05_all_results))
+
+    assert len(results05_python_org) > 3, f"{results05_python_org}"
+    assert len(results05_example_org) > 2, f"{results05_example_org}"
+
+    assert len(results05_example_org) > len(
+        results05_python_org
+    ), f"{len(results05_example_org)} - {len(results05_python_org)}"

@@ -4,7 +4,7 @@ from fastchecks.check import check_website
 from fastchecks.types import WebsiteCheck
 
 
-TEST_TIMEOUT_SECONDS = 8
+TEST_TIMEOUT_SECONDS = 5
 
 
 @pytest.mark.asyncio
@@ -13,9 +13,7 @@ async def test_check_website():
         url = "https://example.org"
 
         regex = "Example D[a-z]+"
-        result = await check_website(
-            session, WebsiteCheck.create_with_validation(url, regex), timeout=TEST_TIMEOUT_SECONDS
-        )
+        result = await check_website(session, WebsiteCheck.with_validation(url, regex), timeout=TEST_TIMEOUT_SECONDS)
 
         assert result.check.url == url
         assert result.check.regex == regex
@@ -35,9 +33,9 @@ async def test_check_website_with_impossible_timeout():
     async with aiohttp.ClientSession() as session:
         url = "https://youtube.com"
 
-        result1 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
-        result2 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
-        result3 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
+        result1 = await check_website(session, WebsiteCheck.with_validation(url), timeout=0.01)
+        result2 = await check_website(session, WebsiteCheck.with_validation(url), timeout=0.01)
+        result3 = await check_website(session, WebsiteCheck.with_validation(url), timeout=0.01)
 
         assert (result1.timeout_error is True) or (result2.timeout_error is True) or (result3.timeout_error is True)
 
@@ -47,6 +45,23 @@ async def test_check_website_with_non_existent_url():
     async with aiohttp.ClientSession() as session:
         url = "https://doesnotexistsowhathappens.xxx"
 
-        result = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=TEST_TIMEOUT_SECONDS)
+        result = await check_website(session, WebsiteCheck.with_validation(url), timeout=TEST_TIMEOUT_SECONDS)
 
         assert result.host_error is True
+
+
+@pytest.mark.asyncio
+async def test_wont_read_binary_response_bodies():
+    # binary PDF url
+    url = "https://www.berkshirehathaway.com/letters/2022ltr.pdf"
+
+    async with aiohttp.ClientSession() as session:
+        regex = "Berkshire"
+        result = await check_website(session, WebsiteCheck.with_validation(url, regex), timeout=TEST_TIMEOUT_SECONDS)
+
+        assert result.check.url == url
+        assert result.check.regex == regex
+
+        assert not result.is_success()
+        assert result.is_response_ok()
+        assert result.regex_match == None

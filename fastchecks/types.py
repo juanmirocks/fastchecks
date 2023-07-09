@@ -2,7 +2,7 @@ import datetime
 from pydantic import BaseModel
 
 from fastchecks.util import validate_regex, validate_url
-from fastchecks import require
+from fastchecks import conf, require
 
 
 # We use Pydantic classes for type safety and because they could be handy in the future for de/serialization.
@@ -15,7 +15,7 @@ class WebsiteCheck(BaseModel):
     regex: str | None = None
 
     @classmethod
-    def create_with_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
+    def with_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
         """
         Validate the given URL and regex (if any), and return a WebsiteCheck instance.
 
@@ -27,7 +27,7 @@ class WebsiteCheck(BaseModel):
         return cls(url=url, regex=regex)
 
     @classmethod
-    def create_without_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
+    def without_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
         """
         Return a WebsiteCheck instance without validating the given URL and regex (if any).
 
@@ -36,17 +36,42 @@ class WebsiteCheck(BaseModel):
         return cls(url=url, regex=regex)
 
 
+class WebsiteCheckScheduled(WebsiteCheck):
+    """
+    WebsiteCheck with an schedule.
+    """
+
+    # url: str
+    # regex: str | None = None
+    interval_seconds: int | None
+    """If None, later a system's default value will be used."""
+
+    @classmethod
+    def with_check(cls, check: WebsiteCheck, interval_seconds: int | None) -> "WebsiteCheckScheduled":
+        if interval_seconds is not None:
+            conf.validate_interval(interval_seconds)
+
+        return cls(url=check.url, regex=check.regex, interval_seconds=interval_seconds)
+
+
 class CheckResult(BaseModel):
-    # The check that generated this result
+    #
     check: WebsiteCheck
+    """The check that generated this result"""
+    #
     # Common values
+    #
     timestamp_start: datetime.datetime
     response_time: float
+    #
     # Connection error values
+    #
     timeout_error: bool
     host_error: bool
     other_error: bool
-    # Response values (OK response, <400, or not)
+    #
+    # Response values (note: OK response, <400, or not)
+    #
     response_status: int | None
     regex_match: str | bool | None
     """

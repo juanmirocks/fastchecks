@@ -1,4 +1,5 @@
 import asyncio
+from typing import AsyncIterator
 import aiohttp
 
 from fastchecks.check import check_website
@@ -6,6 +7,7 @@ from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
 from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
 from fastchecks import require, util
 from fastchecks.types import CheckResult, WebsiteCheck
+import logging
 
 # -----------------------------------------------------------------------------
 
@@ -17,9 +19,7 @@ class ChecksRunnerContext:
     The backends/sockets for checks and results could potentially be different (e.g. Redis or even a simple text file for checks, Postgres for results).
     """
 
-    def __init__(
-        self, session: aiohttp.ClientSession, checks: WebsiteCheckSocket, results: CheckResultSocket
-    ) -> None:
+    def __init__(self, session: aiohttp.ClientSession, checks: WebsiteCheckSocket, results: CheckResultSocket) -> None:
         require(not session.closed, "Session must be open")
         require(not checks.is_closed(), "Checks socket must be open")
         require(not results.is_closed(), "Results socket must be open")
@@ -49,31 +49,13 @@ class ChecksRunnerContext:
 
     # -----------------------------------------------------------------------------
 
-    async def upsert_check(self, check: WebsiteCheck) -> None:
-        await self.checks.upsert(check)
-
-    async def read_all_checks(self) -> None:
-        async for check in self.checks.read_last_n(util.PRACTICAL_MAX_INT):
-            print(check)
-
-    async def delete_check(self, url: str) -> None:
-        await self.checks.delete(url)
-
-    # -----------------------------------------------------------------------------
-
     async def check_website_only(self, check: WebsiteCheck) -> CheckResult:
         ret = await check_website(self._aiohttp_session, check)
-        print(ret)
+        logging.info(ret)
         return ret
 
-    async def write_result(self, result: CheckResult) -> None:
-        await self.results.write(result)
-
-    async def check_all_websites_and_write(self) -> None:
-        async for check in self.checks.read_last_n(util.PRACTICAL_MAX_INT):
+    async def check_all_websites_and_write(self) -> AsyncIterator[CheckResult]:
+        async for check in self.checks.read_n(util.PRACTICAL_MAX_INT):
             result = await self.check_website_only(check)
-            await self.write_result(result)
-
-    async def read_last_n_results(self, n: int) -> None:
-        async for result in self.results.read_last_n(n):
-            print(result)
+            await self.results.write(result)
+            yield result

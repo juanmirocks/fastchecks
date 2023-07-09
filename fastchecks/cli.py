@@ -40,8 +40,8 @@ async def main() -> None:
                 result = await ctx.check_website_only(WebsiteCheck.create_with_validation(url, regex_str_opt))
                 await ctx.write_result(result)
 
-            case "check_all_websites_and_write":
-                await ctx.check_all_websites_and_write()
+            case "check_once_all_websites_and_write":
+                await ctx.check_once_all_websites_and_write()
 
             case __ResultsParams.READ_MAX_RESULTS_OPR:
                 await ctx.read_last_n_results(__ResultsParams.READ_MAX_RESULTS)

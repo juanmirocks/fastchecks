@@ -24,6 +24,23 @@ async def test_check_website():
 
 
 @pytest.mark.asyncio
+async def test_check_website_where_regex_does_not_match():
+    async with aiohttp.ClientSession() as session:
+        url = "https://example.org"
+
+        regex = "Some regex that will not match .*"
+        result = await check_website(session, WebsiteCheck.with_validation(url, regex), timeout=TEST_TIMEOUT_SECONDS)
+
+        assert result.check.url == url
+        assert result.check.regex == regex
+
+        assert not result.is_success()
+        assert result.is_response_ok()
+        assert result.response_status == 200
+        assert result.regex_match == False
+
+
+@pytest.mark.asyncio
 async def test_check_website_with_impossible_timeout():
     """
     Note: This test is not deterministic, but it's very unlikely to fail.

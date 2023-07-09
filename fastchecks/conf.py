@@ -48,6 +48,15 @@ require(
 
 # -----------------------------------------------------------------------------
 
+TOO_BIG_CONTENT_LENGTH_KB = get_typed_envar("FC_TOO_BIG_CONTENT_LENGTH_KB", default=100000, conversion=lambda x: int(x))
+"""
+Limit value (in _kilo_ bytes, not kibi bytes) to consider a response's content length as too big to be read in memory.
+
+For reference, the size of https://python.org is, as of 2023-07-06, 49943 bytes.
+"""
+
+# -----------------------------------------------------------------------------
+
 _POSTGRES_CONNINFO: str | None = os.environ.get("FC_POSTGRES_CONNINFO")
 
 

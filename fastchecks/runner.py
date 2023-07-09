@@ -105,7 +105,7 @@ class ChecksRunnerContext:
 
         return scheduler
 
-    async def def_run_checks_until_stopped_in_foreground(self) -> None:
+    async def run_checks_until_stopped_in_foreground(self) -> None:
         try:
             async with AsyncScheduler() as scheduler:
                 async for check in await self.checks.read_all():

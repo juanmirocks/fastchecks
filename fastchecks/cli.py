@@ -2,7 +2,7 @@ import asyncio
 import sys
 from fastchecks import conf, require
 from fastchecks.runner import ChecksRunnerContext
-from fastchecks.types import WebsiteCheck
+from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 
 
 class __ResultsParams:
@@ -23,13 +23,13 @@ async def main() -> None:
     async with ctx:
         match opr:
             case "upsert_check":
-                await ctx.upsert_check(WebsiteCheck.with_validation(url, regex_str_opt))
+                await ctx.checks.upsert(WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(url, regex_str_opt), interval_seconds=None))
 
             case "read_all_checks":
-                await ctx.read_all_checks()
+                await ctx.checks.read_all()
 
             case "delete_check":
-                await ctx.delete_check(url)
+                await ctx.checks.delete(url)
 
             ###
 
@@ -38,13 +38,13 @@ async def main() -> None:
 
             case "check_website_and_write":
                 result = await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
-                await ctx.write_result(result)
+                await ctx.results.write(result)
 
             case "check_once_all_websites_and_write":
                 await ctx.check_once_all_websites_n_write()
 
             case __ResultsParams.READ_MAX_RESULTS_OPR:
-                await ctx.read_last_n_results(__ResultsParams.READ_MAX_RESULTS)
+                await ctx.results.read_last_n(__ResultsParams.READ_MAX_RESULTS)
 
             case _:
                 raise ValueError(f"Unknown opr: {opr}")

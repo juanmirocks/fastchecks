@@ -76,17 +76,17 @@ class ChecksRunnerContext:
         return ret
 
     async def check_once_all_websites_n_write(self) -> AsyncIterator[CheckResult]:
-        async for check in self.checks.read_n(util.PRACTICAL_MAX_INT):
+        async for check in await self.checks.read_n(util.PRACTICAL_MAX_INT):
             result = await self.check_only(check)
             await self.results.write(result)
             yield result
 
     # -----------------------------------------------------------------------------
 
-    def _get_interval_seconds(self, check: WebsiteCheck) -> int:
+    def _get_interval_seconds(self, check: WebsiteCheckScheduled) -> int:
         return self.default_interval_seconds if check.interval_seconds is None else check.interval_seconds
 
-    async def add_check_to_scheduler(self, scheduler: AsyncScheduler, check: WebsiteCheckScheduled) -> AsyncScheduler:
+    async def _add_check_to_scheduler(self, scheduler: AsyncScheduler, check: WebsiteCheckScheduled) -> AsyncScheduler:
         fun = self.check_n_write
 
         # Note: we can later retrieve scheduled checks by their url (with `AsyncScheduler.get_schedule``)
@@ -95,20 +95,24 @@ class ChecksRunnerContext:
             fun, trigger=IntervalTrigger(seconds=self._get_interval_seconds(check)), id=check.url, args=[check]
         )
 
-    async def add_checks_to_scheduler(
+        return scheduler
+
+    async def _add_checks_to_scheduler(
         self, scheduler: AsyncScheduler, checks: AsyncIterator[WebsiteCheckScheduled]
     ) -> AsyncScheduler:
         async for check in checks:
-            await self.add_check_to_scheduler(scheduler, check)
+            await self._add_check_to_scheduler(scheduler, check)
 
-    async def def_run_checks_until_stopped_in_foreground(self) -> AsyncScheduler:
+        return scheduler
+
+    async def def_run_checks_until_stopped_in_foreground(self) -> None:
         try:
             async with AsyncScheduler() as scheduler:
-                async for check in self.checks.read_all():
+                async for check in await self.checks.read_all():
                     logging.info(f"Adding check to scheduler: {check}")
-                    await self.add_check_to_scheduler(scheduler, check)
+                    await self._add_check_to_scheduler(scheduler, check)
 
-                require(len(scheduler.get_schedules()) != 0, "No checks to run. Add some checks first.")
+                require(len(await scheduler.get_schedules()) != 0, "No checks to run. Add some checks first.")
 
                 await scheduler.run_until_stopped()
 

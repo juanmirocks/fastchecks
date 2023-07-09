@@ -40,10 +40,10 @@ MIN_INTERVAL_SECONDS: int = get_typed_envar("FC_MIN_INTERVAL_SECONDS", default=5
 
 MAX_INTERVAL_SECONDS: int = get_typed_envar("FC_MAX_INTERVAL_SECONDS", default=300, conversion=lambda x: int(x))
 
-DEFAULT_INTERVAL_SECONDS: int = get_typed_envar("FC_DEFAULT_INTERVAL_SECONDS", default=180, conversion=lambda x: int(x))
+DEFAULT_CHECK_INTERVAL_SECONDS: int = get_typed_envar("FC_DEFAULT_CHECK_INTERVAL_SECONDS", default=180, conversion=lambda x: int(x))
 require(
-    MIN_INTERVAL_SECONDS <= DEFAULT_INTERVAL_SECONDS <= MAX_INTERVAL_SECONDS,
-    f"Interval {DEFAULT_INTERVAL_SECONDS} must be between min ({MIN_INTERVAL_SECONDS}) and max ({MAX_INTERVAL_SECONDS})",
+    MIN_INTERVAL_SECONDS <= DEFAULT_CHECK_INTERVAL_SECONDS <= MAX_INTERVAL_SECONDS,
+    f"Interval {DEFAULT_CHECK_INTERVAL_SECONDS} must be between min ({MIN_INTERVAL_SECONDS}) and max ({MAX_INTERVAL_SECONDS})",
 )
 
 # -----------------------------------------------------------------------------

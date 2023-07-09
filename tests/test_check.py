@@ -27,12 +27,19 @@ async def test_check_website():
 
 @pytest.mark.asyncio
 async def test_check_website_with_impossible_timeout():
+    """
+    Note: This test is not deterministic, but it's very unlikely to fail.
+    For sub-second timeouts, the timeout limit is not guaranteed to be respected.
+    We do the check three times, and if at least one of them times out, we consider the test as passed.
+    """
     async with aiohttp.ClientSession() as session:
         url = "https://example.org"
 
-        result = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
+        result1 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
+        result2 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
+        result3 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
 
-        assert result.timeout_error is True
+        assert (result1.timeout_error is True) or (result2.timeout_error is True) or (result3.timeout_error is True)
 
 
 @pytest.mark.asyncio

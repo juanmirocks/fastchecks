@@ -27,7 +27,7 @@ class ChecksRunnerContext:
         session: aiohttp.ClientSession,
         checks: WebsiteCheckSocket,
         results: CheckResultSocket,
-        default_interval_seconds: int | None,
+        default_interval_seconds: int | None = None,
     ) -> None:
         require(not session.closed, "Session must be open")
         require(not checks.is_closed(), "Checks socket must be open")
@@ -76,7 +76,7 @@ class ChecksRunnerContext:
         return ret
 
     async def check_once_all_websites_n_write(self) -> AsyncIterator[CheckResult]:
-        async for check in await self.checks.read_n(util.PRACTICAL_MAX_INT):
+        async for check in self.checks.read_n(util.PRACTICAL_MAX_INT):
             result = await self.check_only(check)
             await self.results.write(result)
             yield result

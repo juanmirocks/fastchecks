@@ -106,6 +106,12 @@ class ChecksRunnerContext:
         return scheduler
 
     async def run_checks_until_stopped_in_foreground(self) -> None:
+        """
+        Run all saved checks until stopped (e.g. with Ctrl+C) in the foreground.
+        The interval for each check is taken from the check itself, or the default interval if not specified.
+
+        If there are no checks yet, an error is raised.
+        """
         try:
             async with AsyncScheduler() as scheduler:
                 async for check in await self.checks.read_all():

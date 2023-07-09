@@ -46,6 +46,9 @@ require(
     f"Interval {DEFAULT_CHECK_INTERVAL_SECONDS} must be between min ({MIN_INTERVAL_SECONDS}) and max ({MAX_INTERVAL_SECONDS})",
 )
 
+def validate_interval(interval_seconds: int) -> bool:
+    return MIN_INTERVAL_SECONDS <= interval_seconds <= MAX_INTERVAL_SECONDS
+
 # -----------------------------------------------------------------------------
 
 TOO_BIG_CONTENT_LENGTH_KB = get_typed_envar("FC_TOO_BIG_CONTENT_LENGTH_KB", default=100000, conversion=lambda x: int(x))

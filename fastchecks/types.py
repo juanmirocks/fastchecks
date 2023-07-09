@@ -2,7 +2,7 @@ import datetime
 from pydantic import BaseModel
 
 from fastchecks.util import validate_regex, validate_url
-from fastchecks import require
+from fastchecks import conf, require
 
 
 # We use Pydantic classes for type safety and because they could be handy in the future for de/serialization.
@@ -48,6 +48,8 @@ class WebsiteCheckScheduled(WebsiteCheck):
 
     @classmethod
     def with_check(cls, check: WebsiteCheck, interval_seconds: int | None) -> "WebsiteCheckScheduled":
+        require(interval_seconds is None or conf.validate_interval(interval_seconds))
+
         return cls(url=check.url, regex=check.regex, interval_seconds=interval_seconds)
 
 

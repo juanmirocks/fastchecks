@@ -4,6 +4,7 @@ version = "0.1.0-pre"
 description = ""
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
+repository = "https://github.com/juanmirocks/fastchecks"
 packages = [{ include = "fastchecks" }]
 
 

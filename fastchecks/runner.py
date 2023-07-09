@@ -76,4 +76,8 @@ class ChecksRunnerContext:
         fun = self.check_n_write
 
         # MAYBE (2023-07-09; future idea): tag the check with the url's domain, so later we can filter on them
-        scheduler.add_schedule(fun, trigger=IntervalTrigger(seconds=check.interval_seconds), id=check.url, args=[check])
+        await scheduler.add_schedule(fun, trigger=IntervalTrigger(seconds=check.interval_seconds), id=check.url, args=[check])
+
+    async def add_checks_to_scheduler(self, scheduler: AsyncScheduler, checks: AsyncIterator[WebsiteCheckScheduled]) -> AsyncScheduler:
+        async for check in checks:
+            await self.add_check_to_scheduler(scheduler, check)

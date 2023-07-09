@@ -131,7 +131,4 @@ _A = TypeVar("_A")
 
 # MAYBE #1 (2023-07-08) improve with real async mapping
 async def async_itr_to_list(x: AsyncIterator[_A]) -> list[_A]:
-    print("0", x, type(x))
-    z = [result async for result in x]
-    print("z", z, type(z))
-    return z
+    return [result async for result in x]

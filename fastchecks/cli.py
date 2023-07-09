@@ -34,14 +34,14 @@ async def main() -> None:
             ###
 
             case "check_website_only":
-                await ctx.check_website_only(WebsiteCheck.with_validation(url, regex_str_opt))
+                await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
 
             case "check_website_and_write":
-                result = await ctx.check_website_only(WebsiteCheck.with_validation(url, regex_str_opt))
+                result = await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
                 await ctx.write_result(result)
 
             case "check_once_all_websites_and_write":
-                await ctx.check_once_all_websites_and_write()
+                await ctx.check_once_all_websites_n_write()
 
             case __ResultsParams.READ_MAX_RESULTS_OPR:
                 await ctx.read_last_n_results(__ResultsParams.READ_MAX_RESULTS)

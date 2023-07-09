@@ -49,13 +49,20 @@ class ChecksRunnerContext:
 
     # -----------------------------------------------------------------------------
 
-    async def check_website_only(self, check: WebsiteCheck) -> CheckResult:
+    async def check_only(self, check: WebsiteCheck) -> CheckResult:
+        """Check website without saving into results data storage."""
         ret = await check_website(self._aiohttp_session, check)
-        logging.info(ret)
+        logging.debug(ret)
         return ret
 
-    async def check_once_all_websites_and_write(self) -> AsyncIterator[CheckResult]:
+    async def check_n_write(self, check: WebsiteCheck) -> CheckResult:
+        """Check website and save into results data storage."""
+        ret = await self.check_only(check)
+        await self.results.write(ret)
+        return ret
+
+    async def check_once_all_websites_n_write(self) -> AsyncIterator[CheckResult]:
         async for check in self.checks.read_n(util.PRACTICAL_MAX_INT):
-            result = await self.check_website_only(check)
+            result = await self.check_only(check)
             await self.results.write(result)
             yield result

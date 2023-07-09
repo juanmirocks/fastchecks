@@ -3,6 +3,7 @@ from typing import AsyncIterator
 from pydantic.types import PositiveInt
 
 from fastchecks.types import WebsiteCheck, CheckResult
+from fastchecks.util import PRACTICAL_MAX_INT
 
 
 class WebsiteCheckSocket(ABC):
@@ -20,8 +21,17 @@ class WebsiteCheckSocket(ABC):
         ...
 
     @abstractmethod
-    async def read_last_n(self, n: PositiveInt) -> AsyncIterator[CheckResult]:
+    async def read_n(self, n: PositiveInt) -> AsyncIterator[WebsiteCheck]:
         ...
+
+    async def read_all(self) -> AsyncIterator[WebsiteCheck]:
+        """
+        Read all checks from the socket's underlying storage.
+
+        This is a sugar method that calls `read_n` with a practically infinite large number.
+        Careful: Use this method only if the underlying storage can handle reading all checks (e.g., there not many written checks, which it's common).
+        """
+        return self.read_n(PRACTICAL_MAX_INT)
 
     @abstractmethod
     async def delete(self, url: str) -> None:

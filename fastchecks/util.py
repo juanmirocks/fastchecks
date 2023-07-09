@@ -1,5 +1,6 @@
 import datetime
 import re
+from typing import Any, AsyncIterator, TypeVar
 from urllib.parse import urlparse, urlunparse
 import sys
 import ctypes
@@ -123,3 +124,14 @@ def is_content_length_less_than(response: aiohttp.ClientResponse, length: int, a
         return allow_none_content_length
     else:
         return int(content_length) < length
+
+
+_A = TypeVar("_A")
+
+
+# MAYBE #1 (2023-07-08) improve with real async mapping
+async def async_itr_to_list(x: AsyncIterator[_A]) -> list[_A]:
+    print("0", x, type(x))
+    z = [result async for result in x]
+    print("z", z, type(z))
+    return z

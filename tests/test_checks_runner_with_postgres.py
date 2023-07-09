@@ -2,6 +2,7 @@ import asyncio
 import pytest
 import pytest_asyncio
 from fastchecks.checks_runner import ChecksRunnerContext
+from fastchecks.util import PRACTICAL_MAX_INT, async_itr_to_list
 from tests import tconf
 from fastchecks.sockets.postgres import schema
 from importlib import resources
@@ -85,13 +86,9 @@ WIP_TEST_STRING: str | None = None
 
 
 @pytest.mark.asyncio
-async def test_dummy_1(setup_module):
-    global WIP_TEST_STRING
-    await asyncio.sleep(1)
-    WIP_TEST_STRING = "hello"
-    assert True
+async def test_at_start_nor_checks_nor_results(setup_module):
+    checks = await async_itr_to_list(await CTX.checks.read_all())
+    results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
 
-
-@pytest.mark.asyncio
-async def test_dummy_2(setup_module):
-    assert WIP_TEST_STRING == "hello"
+    assert len(checks) == 0, f"{checks} - {type(checks)}"
+    # assert len(results) == 0, f"{results} - {type(results)}"

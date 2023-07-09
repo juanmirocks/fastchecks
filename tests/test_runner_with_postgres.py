@@ -99,6 +99,10 @@ async def test_simple_checks_workflow(setup_module):
     assert len(checks00) == 0, f"{checks00} - {type(checks00)}"
     assert len(results00) == 0, f"{results00} - {type(results00)}"
 
+    # We expect an error since there are no checks yet
+    with pytest.raises(ValueError):
+        await CTX.run_checks_until_stopped_in_foreground()
+
     #
     # 02: We insert 1 check; we expect to read back 1 check
     #

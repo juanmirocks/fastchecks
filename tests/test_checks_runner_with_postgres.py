@@ -113,7 +113,10 @@ async def test_simple_checks_workflow(setup_module):
     results02b = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     assert len(results02a) == 1, f"{results02a} - {type(results02a)}"
     assert len(results02b) == 1, f"{results02b} - {type(results02b)}"
-    assert results02a[0].is_regex_match_truthy() and results02a[0].regex_match == "Python is a programming language that lets you work quickly"
+    assert (
+        results02a[0].is_regex_match_truthy()
+        and results02a[0].regex_match == "Python is a programming language that lets you work quickly"
+    )
     assert results02b[0].is_regex_match_truthy() and results02b[0].regex_match == True
 
     #
@@ -125,7 +128,9 @@ async def test_simple_checks_workflow(setup_module):
     results03_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     #
     assert len(checks03) == 2, f"{checks03} - {type(checks03)}"
-    assert len(results03_only_last_2_results) == 2, f"{results03_only_last_2_results} - {type(results03_only_last_2_results)}"
+    assert (
+        len(results03_only_last_2_results) == 2
+    ), f"{results03_only_last_2_results} - {type(results03_only_last_2_results)}"
     assert len(results03_all_results) == 3, f"{results03_all_results} - {type(results03_all_results)}"
 
     #
@@ -137,5 +142,7 @@ async def test_simple_checks_workflow(setup_module):
     results04_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     #
     assert len(checks04) == 2, f"{checks04} - {type(checks04)}"
-    assert len(results04_only_last_2_results) == 2, f"{results04_only_last_2_results} - {type(results04_only_last_2_results)}"
+    assert (
+        len(results04_only_last_2_results) == 2
+    ), f"{results04_only_last_2_results} - {type(results04_only_last_2_results)}"
     assert len(results04_all_results) == 5, f"{results04_all_results} - {type(results04_all_results)}"

@@ -7,8 +7,12 @@ TEST_POSTGRES_DEFAULT_DB_CONNINFO = os.environ.get(
 )
 
 
+def gen_random_timestamped_str() -> str:
+    return f"{os.urandom(8).hex()}_{int(get_utcnow().timestamp())}"
+
+
 def gen_new_random_dbname() -> str:
-    return f"test_fastchecks_{os.urandom(8).hex()}_{int(get_utcnow().timestamp())}"
+    return f"test_fastchecks_{gen_random_timestamped_str()}"
 
 
 def gen_new_test_postgres_conninfo() -> tuple[str, str]:

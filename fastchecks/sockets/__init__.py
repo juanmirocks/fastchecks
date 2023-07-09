@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import AsyncIterator
 from pydantic.types import PositiveInt
 
-from fastchecks.types import WebsiteCheck, CheckResult
+from fastchecks.types import WebsiteCheckScheduled, CheckResult
 from fastchecks.util import PRACTICAL_MAX_INT
 
 
@@ -12,7 +12,7 @@ class WebsiteCheckSocket(ABC):
         ...
 
     @abstractmethod
-    async def upsert(self, check: WebsiteCheck) -> None:
+    async def upsert(self, check: WebsiteCheckScheduled) -> None:
         """
         Upsert a check into the socket's underlying storage.
         That is, if the check's URL already exists, update the regex.
@@ -21,10 +21,10 @@ class WebsiteCheckSocket(ABC):
         ...
 
     @abstractmethod
-    async def read_n(self, n: PositiveInt) -> AsyncIterator[WebsiteCheck]:
+    async def read_n(self, n: PositiveInt) -> AsyncIterator[WebsiteCheckScheduled]:
         ...
 
-    async def read_all(self) -> AsyncIterator[WebsiteCheck]:
+    async def read_all(self) -> AsyncIterator[WebsiteCheckScheduled]:
         """
         Read all checks from the socket's underlying storage.
 

@@ -2,7 +2,7 @@ import asyncio
 import pytest
 import pytest_asyncio
 from fastchecks.runner import ChecksRunnerContext
-from fastchecks.types import WebsiteCheck
+from fastchecks.types import WebsiteCheckScheduled, WebsiteCheck
 from fastchecks.util import PRACTICAL_MAX_INT, async_itr_to_list
 from tests import tconf
 from fastchecks.sockets.postgres import schema
@@ -102,7 +102,12 @@ async def test_simple_checks_workflow(setup_module):
     #
     # 02: We insert 1 check; we expect to read back 1 check
     #
-    await CTX.checks.upsert(WebsiteCheck(url="https://python.org", regex="Python .* lets you work quickly"))
+    await CTX.checks.upsert(
+        WebsiteCheckScheduled.with_check(
+            WebsiteCheck.with_validation(url="https://python.org", regex="Python .* lets you work quickly"),
+            interval_seconds=None,
+        )
+    )
     #
     checks01 = await async_itr_to_list(await CTX.checks.read_all())
     assert len(checks01) == 1, f"{checks01} - {type(checks01)}"
@@ -124,7 +129,11 @@ async def test_simple_checks_workflow(setup_module):
     #
     # 04: We insert 1 more check, and then run & store all checks; we expect to see 2 checks and 3 total results
     #
-    await CTX.checks.upsert(WebsiteCheck(url="https://example.org", regex="Example D[a-z]+"))
+    await CTX.checks.upsert(
+        WebsiteCheckScheduled.with_check(
+            WebsiteCheck.with_validation(url="https://example.org", regex="Example D[a-z]+"), interval_seconds=None
+        )
+    )
     checks03 = await async_itr_to_list(await CTX.checks.read_all())
     results03_only_last_2_results = await async_itr_to_list(CTX.check_once_all_websites_and_write())
     results03_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
@@ -138,7 +147,11 @@ async def test_simple_checks_workflow(setup_module):
     #
     # 05: We update a past check, and then run & store all checks; we expect to see 2 checks (still) and 5 total results
     #
-    await CTX.checks.upsert(WebsiteCheck(url="https://example.org", regex=None))
+    await CTX.checks.upsert(
+        WebsiteCheckScheduled.with_check(
+            WebsiteCheck.with_validation(url="https://example.org", regex=None), interval_seconds=None
+        )
+    )
     checks04 = await async_itr_to_list(await CTX.checks.read_all())
     results04_only_last_2_results = await async_itr_to_list(CTX.check_once_all_websites_and_write())
     results04_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))

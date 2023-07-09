@@ -23,7 +23,7 @@ async def main() -> None:
     async with ctx:
         match opr:
             case "upsert_check":
-                await ctx.upsert_check(WebsiteCheck.create_with_validation(url, regex_str_opt))
+                await ctx.upsert_check(WebsiteCheck.with_validation(url, regex_str_opt))
 
             case "read_all_checks":
                 await ctx.read_all_checks()
@@ -34,10 +34,10 @@ async def main() -> None:
             ###
 
             case "check_website_only":
-                await ctx.check_website_only(WebsiteCheck.create_with_validation(url, regex_str_opt))
+                await ctx.check_website_only(WebsiteCheck.with_validation(url, regex_str_opt))
 
             case "check_website_and_write":
-                result = await ctx.check_website_only(WebsiteCheck.create_with_validation(url, regex_str_opt))
+                result = await ctx.check_website_only(WebsiteCheck.with_validation(url, regex_str_opt))
                 await ctx.write_result(result)
 
             case "check_once_all_websites_and_write":

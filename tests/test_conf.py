@@ -1,6 +1,5 @@
 import pytest
 from fastchecks import conf
-from tests import tconf
 
 
 def test_read_envar_value_raises_exception_if_envar_is_not_set():

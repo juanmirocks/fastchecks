@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import Any, AsyncIterator, TypeVar
+from typing import AsyncIterator, TypeVar
 from urllib.parse import urlparse, urlunparse
 import sys
 import ctypes

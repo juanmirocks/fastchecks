@@ -1,3 +1,4 @@
+from typing import AsyncIterator
 from pydantic import PositiveInt
 from fastchecks.types import CheckResult, WebsiteCheck
 from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
@@ -26,7 +27,7 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
                 (check.url, check.regex),
             )
 
-    async def read_last_n(self, n: PositiveInt):
+    async def read_n(self, n: PositiveInt) -> AsyncIterator[WebsiteCheck]:
         async with self.__pool.connection() as aconn:
             # We format the safe query in 2 steps (also below) to avoid false positives from bandit (B608:hardcoded_sql_expressions)
             # We follow psycopg recommendations for how to escape composed SQL queries: https://www.psycopg.org/psycopg3/docs/advanced/typing.html#checking-literal-strings-in-queries
@@ -84,7 +85,7 @@ class CheckResultSocketPostgres(CheckResultSocket):
                 ),
             )
 
-    async def read_last_n(self, n: PositiveInt):
+    async def read_last_n(self, n: PositiveInt) -> AsyncIterator[CheckResult]:
         async with self.__pool.connection() as aconn:
             query_raw = """
                 SELECT * FROM CheckResult

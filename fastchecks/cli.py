@@ -23,7 +23,11 @@ async def main() -> None:
     async with ctx:
         match opr:
             case "upsert_check":
-                await ctx.checks.upsert(WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(url, regex_str_opt), interval_seconds=None))
+                await ctx.checks.upsert(
+                    WebsiteCheckScheduled.with_check(
+                        WebsiteCheck.with_validation(url, regex_str_opt), interval_seconds=None
+                    )
+                )
 
             case "read_all_checks":
                 await ctx.checks.read_all()

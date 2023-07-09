@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from fastchecks import conf, require
-from fastchecks.checks_runner import ChecksRunnerContext
+from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck
 
 

@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 import pytest_asyncio
-from fastchecks.checks_runner import ChecksRunnerContext
+from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck
 from fastchecks.util import PRACTICAL_MAX_INT, async_itr_to_list
 from tests import tconf

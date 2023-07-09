@@ -37,7 +37,9 @@ class ChecksRunnerContext:
         self.checks = checks
         self.results = results
         self.default_interval_seconds = (
-            conf.DEFAULT_CHECK_INTERVAL_SECONDS if default_interval_seconds is None else default_interval_seconds
+            conf.DEFAULT_CHECK_INTERVAL_SECONDS
+            if default_interval_seconds is None
+            else conf.validate_interval(default_interval_seconds)
         )
         """Default interval for website checks that don't specify it"""
 

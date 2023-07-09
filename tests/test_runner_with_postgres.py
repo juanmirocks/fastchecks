@@ -1,6 +1,7 @@
 import asyncio
 import pytest
 import pytest_asyncio
+from fastchecks import conf
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheckScheduled, WebsiteCheck
 from fastchecks.util import PRACTICAL_MAX_INT, async_itr_to_list
@@ -15,6 +16,9 @@ import logging
 TEST_DBNAME: str
 TEST_CONNINFO: str
 CTX: ChecksRunnerContext
+
+# Allow minimum of 1 interval second for tests for speed
+conf.MIN_INTERVAL_SECONDS = 1
 
 
 # See trick for pytest async: https://stackoverflow.com/a/56238383/341320

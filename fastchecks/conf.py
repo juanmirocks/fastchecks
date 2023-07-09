@@ -43,14 +43,20 @@ MAX_INTERVAL_SECONDS: int = get_typed_envar("FC_MAX_INTERVAL_SECONDS", default=3
 DEFAULT_CHECK_INTERVAL_SECONDS: int = get_typed_envar(
     "FC_DEFAULT_CHECK_INTERVAL_SECONDS", default=180, conversion=lambda x: int(x)
 )
-require(
-    MIN_INTERVAL_SECONDS <= DEFAULT_CHECK_INTERVAL_SECONDS <= MAX_INTERVAL_SECONDS,
-    f"Interval {DEFAULT_CHECK_INTERVAL_SECONDS} must be between min ({MIN_INTERVAL_SECONDS}) and max ({MAX_INTERVAL_SECONDS})",
-)
 
 
-def validate_interval(interval_seconds: int) -> bool:
-    return MIN_INTERVAL_SECONDS <= interval_seconds <= MAX_INTERVAL_SECONDS
+def validate_interval(interval_seconds: int) -> int:
+    """
+    Validate the given interval, and return it if it is valid, otherwise raise ValueError.
+    """
+    require(
+        MIN_INTERVAL_SECONDS <= interval_seconds <= MAX_INTERVAL_SECONDS,
+        f"Interval {interval_seconds} must be between min ({MIN_INTERVAL_SECONDS}) and max ({MAX_INTERVAL_SECONDS})",
+    )
+    return interval_seconds
+
+
+validate_interval(DEFAULT_CHECK_INTERVAL_SECONDS)
 
 
 # -----------------------------------------------------------------------------

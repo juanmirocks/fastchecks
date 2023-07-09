@@ -89,6 +89,8 @@ WIP_TEST_STRING: str | None = None
 
 @pytest.mark.asyncio
 async def test_simple_checks_workflow(setup_module):
+    global CTX
+
     #
     # 01: The DB is empty at the beginning
     #

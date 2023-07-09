@@ -33,7 +33,7 @@ async def test_check_website_with_impossible_timeout():
     We do the check three times, and if at least one of them times out, we consider the test as passed.
     """
     async with aiohttp.ClientSession() as session:
-        url = "https://example.org"
+        url = "https://youtube.com"
 
         result1 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)
         result2 = await check_website(session, WebsiteCheck.create_with_validation(url), timeout=0.01)

@@ -1,61 +1,69 @@
 from typing import AsyncIterator
-
 from pydantic import PositiveInt
-from website_monitor.types import CheckResult, WebsiteCheck
-from website_monitor.sockets import CheckResultSocket, WebsiteCheckSocket
+from fastchecks.types import CheckResult, WebsiteCheckScheduled, WebsiteCheck
+from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
 from psycopg_pool import AsyncConnectionPool
 from psycopg.rows import namedtuple_row
 from psycopg import sql
 
 
 class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
-    __pool: AsyncConnectionPool
-
-    @classmethod
-    async def create(cls, conninfo: str) -> "WebsiteCheckSocket":
-        self = cls()
+    def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
-        return self
 
-    async def write(self, check: WebsiteCheck) -> None:
+    def is_closed(self) -> bool:
+        return self.__pool.closed
+
+    async def upsert(self, check: WebsiteCheckScheduled) -> None:
         async with self.__pool.connection() as aconn:
             await aconn.execute(
                 """
             INSERT INTO WebsiteCheck
-            (url, regex)
-            VALUES (%s, %s);""",
-                (check.url, check.regex),
+            (url, regex, interval_seconds)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (url) DO UPDATE
+                SET regex = EXCLUDED.regex;
+            """,
+                (check.url, check.regex, check.interval_seconds),
             )
 
-    async def read_last_n(self, n: PositiveInt):
+    async def read_n(self, n: PositiveInt) -> AsyncIterator[WebsiteCheckScheduled]:
         async with self.__pool.connection() as aconn:
-            acur = await aconn.execute(
-                sql.SQL(
-                    """
+            # We format the safe query in 2 steps (also below) to avoid false positives from bandit (B608:hardcoded_sql_expressions)
+            # We follow psycopg recommendations for how to escape composed SQL queries: https://www.psycopg.org/psycopg3/docs/advanced/typing.html#checking-literal-strings-in-queries
+            query_raw = """
                 SELECT * FROM WebsiteCheck
-                ORDER BY id DESC
-                LIMIT {};""".format(
-                        n
-                    )
-                )
-            )
+                LIMIT {};"""
+            query_safe = query_raw.format(n)
+
+            acur = await aconn.execute(sql.SQL(query_safe))
 
             acur.row_factory = namedtuple_row
             async for row in acur:
-                yield WebsiteCheck.create_without_validation(row.url, row.regex)
+                # without validation, because we trust the database -- its value were validated before
+                yield WebsiteCheckScheduled.with_check(
+                    WebsiteCheck.without_validation(row.url, row.regex), row.interval_seconds
+                )
+
+    async def delete(self, url: str) -> None:
+        async with self.__pool.connection() as aconn:
+            await aconn.execute(
+                """
+            DELETE FROM WebsiteCheck
+            WHERE url = %s;""",
+                (url,),
+            )
 
     async def close(self) -> None:
         return await self.__pool.close()
 
 
 class CheckResultSocketPostgres(CheckResultSocket):
-    __pool: AsyncConnectionPool
-
-    @classmethod
-    async def create(cls, conninfo: str) -> "CheckResultSocket":
-        self = cls()
+    def __init__(self, conninfo: str) -> None:
         self.__pool = AsyncConnectionPool(conninfo)
-        return self
+
+    def is_closed(self) -> bool:
+        return self.__pool.closed
 
     async def write(self, result: CheckResult) -> None:
         async with self.__pool.connection() as aconn:
@@ -76,27 +84,24 @@ class CheckResultSocketPostgres(CheckResultSocket):
                     result.other_error,
                     #
                     result.response_status,
-                    result.regex_match,
+                    result.regex_match_to_bool_or_none(),
                 ),
             )
 
-    async def read_last_n(self, n: PositiveInt):
+    async def read_last_n(self, n: PositiveInt) -> AsyncIterator[CheckResult]:
         async with self.__pool.connection() as aconn:
-            acur = await aconn.execute(
-                sql.SQL(
-                    """
+            query_raw = """
                 SELECT * FROM CheckResult
                 ORDER BY timestamp_start DESC
-                LIMIT {};""".format(
-                        n
-                    )
-                )
-            )
+                LIMIT {};"""
+            query_safe = query_raw.format(n)
+
+            acur = await aconn.execute(sql.SQL(query_safe))
 
             acur.row_factory = namedtuple_row
             async for row in acur:
                 yield CheckResult(
-                    check=WebsiteCheck.create_without_validation(row.url, row.regex),
+                    check=WebsiteCheck.without_validation(row.url, row.regex),
                     #
                     timestamp_start=row.timestamp_start,
                     response_time=row.response_time,

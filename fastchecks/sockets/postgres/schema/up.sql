@@ -7,15 +7,18 @@ CREATE domain my_pyregex AS VARCHAR(2048);
 
 
 CREATE TABLE
+  -- WebsiteCheck (Scheduled)
   WebsiteCheck (
     -- We decisively not allow duplicate URLs. If we wanted to allow multiple regex's per URL, we could use an ARRAY of regex's.
     url my_url PRIMARY KEY,
-    regex my_pyregex
+    regex my_pyregex,
+    -- Note: the maximum positive value for smallint is 32767 (seconds), meaning a maximum of ~9 hours. We expect to use intervals of a max a few minutes.
+    interval_seconds SMALLINT
   );
 
 
 -- It's tempting to use the timestamp as the primary key, but the probability of collisions is not zero.
--- MAYBE If we needed to often select by website's domain, we could create a separate column for it.
+-- MAYBE (future idea) If we needed to often select by website's domain, we could create a separate column for it.
 -- Note: we don't cross-reference the WebsiteCheck with a key, because a result may be stored even if the website is no longer being checked (or was never stored).
 CREATE TABLE
   CheckResult (
@@ -42,4 +45,8 @@ CREATE TABLE
 
 
 -- Note: we don't set up a foreign key on the url. We might have check results for websites that were never stored or are no longer being checked.
-CREATE INDEX result_url_idx ON CheckResult USING hash (url);
+CREATE INDEX result__url__idx ON CheckResult USING hash (url);
+
+
+-- Create index on timestamp_start, descending, since we will often want to select the most recent results.
+CREATE INDEX result__timestamp_start__desc__idx ON CheckResult USING btree (timestamp_start DESC);

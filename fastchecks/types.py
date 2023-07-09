@@ -1,10 +1,11 @@
 import datetime
 from pydantic import BaseModel
 
-from website_monitor.util import validate_regex, validate_url
+from fastchecks.util import validate_regex, validate_url
+from fastchecks import conf, require
 
 
-# We use Pydantic classes for type safety
+# We use Pydantic classes for type safety and because they could be handy in the future for de/serialization.
 # See benchmarks with other alternatives (e.g. NamedTuple): https://janhendrikewers.uk/pydantic_vs_protobuf_vs_namedtuple_vs_dataclasses.html
 # Note that Pydantic V2 (released in 2023 June) promises a 5-50x speedup over V1: https://docs.pydantic.dev/2.0/blog/pydantic-v2-alpha/#headlines
 
@@ -14,12 +15,11 @@ class WebsiteCheck(BaseModel):
     regex: str | None = None
 
     @classmethod
-    def create_with_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
+    def with_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
         """
         Validate the given URL and regex (if any), and return a WebsiteCheck instance.
 
-        If the URL is invalid, raise ValueError.
-        If the regex is invalid, raise ValueError.
+        If the URL or regex are invalid, raise ValueError.
         """
         validate_url(url)
         if regex is not None:
@@ -27,28 +27,59 @@ class WebsiteCheck(BaseModel):
         return cls(url=url, regex=regex)
 
     @classmethod
-    def create_without_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
+    def without_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":
         """
         Return a WebsiteCheck instance without validating the given URL and regex (if any).
 
-        Note that this method is not recommended, because it is not safe.
+        Only use this method if you are sure that the URL and regex are valid (e.g., they were validated before).
         """
         return cls(url=url, regex=regex)
 
 
+class WebsiteCheckScheduled(WebsiteCheck):
+    """
+    WebsiteCheck with an schedule.
+    """
+
+    # url: str
+    # regex: str | None = None
+    interval_seconds: int | None
+    """If None, later a system's default value will be used."""
+
+    @classmethod
+    def with_check(cls, check: WebsiteCheck, interval_seconds: int | None) -> "WebsiteCheckScheduled":
+        if interval_seconds is not None:
+            conf.validate_interval(interval_seconds)
+
+        return cls(url=check.url, regex=check.regex, interval_seconds=interval_seconds)
+
+
 class CheckResult(BaseModel):
-    # The check that generated this result
+    #
     check: WebsiteCheck
+    """The check that generated this result"""
+    #
     # Common values
+    #
     timestamp_start: datetime.datetime
     response_time: float
+    #
     # Connection error values
+    #
     timeout_error: bool
     host_error: bool
     other_error: bool
-    # Response values (OK response, <400, or not)
+    #
+    # Response values (note: OK response, <400, or not)
+    #
     response_status: int | None
     regex_match: str | bool | None
+    """
+    str: the tested regex matched and the matched string is this value.
+    bool True: the tested regex matched but the matched string is not available.
+    bool False: the tested regex did not match.
+    None: means "not tested" (e.g. there was no regex to test, the response was not OK, or the response body was ignored because it was too big or not text).
+    """
 
     def __init__(self, **data) -> None:
         """
@@ -57,23 +88,37 @@ class CheckResult(BaseModel):
         super().__init__(**data)
 
         if self.check.regex is None:
-            assert self.regex_match is None, "If there is no regex, regex_match MUST be None."
-        else:
-            assert isinstance(
-                self.regex_match, (str, bool)
-            ), "If there is a regex, regex_match MUST be either a string (match's text) or a boolean (match flag)."
+            require(self.regex_match is None, "If there is no regex, regex_match MUST be None.")
 
     def is_success(self) -> bool:
         """
         Return True if the check was successful (i.e. no error, response is OK, and expected regex wax matched if any).
         """
-        return self.is_partial_success() and (self.regex_match is None or isinstance(self.regex_match, (str, bool)))
+        return self.is_response_ok() and self.is_regex_validated()
 
-    def is_partial_success(self) -> bool:
+    def is_response_ok(self) -> bool:
         """
         Return True if the check was partially successful (i.e. no error and response is OK).
         """
         return self.response_status is not None and self.response_status < 400
+
+    def is_regex_validated(self) -> bool:
+        """
+        Return True if the regex was validated (i.e. there was a regex and it matched).
+        """
+        return self.check.regex is None or self.is_regex_match_truthy()
+
+    def is_regex_match_truthy(self) -> bool:
+        """
+        Return True if the regex matched and it's either True or the matched string is present.
+
+        Note: we consider a regex match to be truthy even if the matched string is the empty string.
+        This could be changed.
+        """
+        return self.regex_match is True or isinstance(self.regex_match, str)
+
+    def regex_match_to_bool_or_none(self) -> bool | None:
+        return None if self.regex_match is None else self.is_regex_match_truthy()
 
     @classmethod
     def response(
@@ -114,9 +159,10 @@ class CheckResult(BaseModel):
         """
         Return a failed CheckResult.
         """
-        assert (timeout_error or host_error or other_error) and not (
-            timeout_error and host_error and other_error
-        ), "There can only be one error type."
+        require(
+            (timeout_error or host_error or other_error) and not (timeout_error and host_error and other_error),
+            "There can only be one error type.",
+        )
 
         return cls(
             check=check,

@@ -119,7 +119,7 @@ async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientRes
         else:
             return False
     else:
-        logging.warn(
+        logging.warning(
             f"The regex will not be checked because the response's body might be unsafe to read in memory (too big or not text-based), for url: {response.url}"
         )
         return None

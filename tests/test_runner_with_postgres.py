@@ -200,4 +200,6 @@ async def test_simple_checks_workflow(setup_module):
     assert len(results05_python_org) > 3, f"{results05_python_org}"
     assert len(results05_example_org) > 2, f"{results05_example_org}"
 
-    assert len(results05_example_org) > len(results05_python_org), f"{len(results05_example_org)} - {len(results05_python_org)}"
+    assert len(results05_example_org) > len(
+        results05_python_org
+    ), f"{len(results05_example_org)} - {len(results05_python_org)}"

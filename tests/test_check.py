@@ -4,7 +4,7 @@ from fastchecks.check import check_website
 from fastchecks.types import WebsiteCheck
 
 
-TEST_TIMEOUT_SECONDS = 8
+TEST_TIMEOUT_SECONDS = 5
 
 
 @pytest.mark.asyncio
@@ -48,3 +48,20 @@ async def test_check_website_with_non_existent_url():
         result = await check_website(session, WebsiteCheck.with_validation(url), timeout=TEST_TIMEOUT_SECONDS)
 
         assert result.host_error is True
+
+
+@pytest.mark.asyncio
+async def test_wont_read_binary_response_bodies():
+    # binary PDF url
+    url = "https://www.berkshirehathaway.com/letters/2022ltr.pdf"
+
+    async with aiohttp.ClientSession() as session:
+        regex = "Berkshire"
+        result = await check_website(session, WebsiteCheck.with_validation(url, regex), timeout=TEST_TIMEOUT_SECONDS)
+
+        assert result.check.url == url
+        assert result.check.regex == regex
+
+        assert not result.is_success()
+        assert result.is_response_ok()
+        assert result.regex_match == None

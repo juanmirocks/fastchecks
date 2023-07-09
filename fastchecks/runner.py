@@ -1,13 +1,16 @@
 import asyncio
+import logging
 from typing import AsyncIterator
-import aiohttp
 
+import aiohttp
+from apscheduler.schedulers.async_ import AsyncScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+
+from fastchecks import require, util
 from fastchecks.check import check_website
 from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
 from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
-from fastchecks import require, util
-from fastchecks.types import CheckResult, WebsiteCheck
-import logging
+from fastchecks.types import CheckResult, WebsiteCheck, WebsiteCheckScheduled
 
 # -----------------------------------------------------------------------------
 
@@ -66,3 +69,11 @@ class ChecksRunnerContext:
             result = await self.check_only(check)
             await self.results.write(result)
             yield result
+
+    # -----------------------------------------------------------------------------
+
+    async def add_check_to_scheduler(self, scheduler: AsyncScheduler, check: WebsiteCheckScheduled) -> AsyncScheduler:
+        fun = self.check_n_write
+
+        # MAYBE (2023-07-09; future idea): tag the check with the url's domain, so later we can filter on them
+        scheduler.add_schedule(fun, trigger=IntervalTrigger(seconds=check.interval_seconds), id=check.url, args=[check])

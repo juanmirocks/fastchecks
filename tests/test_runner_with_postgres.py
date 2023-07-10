@@ -124,7 +124,7 @@ async def test_simple_checks_workflow(setup_module):
     # 02: We run & store all checks
     #     We expect to see 1 check and 1 result
     #
-    results02a = await async_itr_to_list(CTX.check_once_all_websites_n_write())
+    results02a = await async_itr_to_list(CTX.check_all_once_n_write())
     # Another way to get the same result, just to be sure, however the result read from the DB no longer contains the matched regex text
     results02b = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     assert len(results02a) == 1, f"{results02a} - {type(results02a)}"
@@ -145,7 +145,7 @@ async def test_simple_checks_workflow(setup_module):
         )
     )
     checks03 = await async_itr_to_list(await CTX.checks.read_all())
-    results03_only_last_2_results = await async_itr_to_list(CTX.check_once_all_websites_n_write())
+    results03_only_last_2_results = await async_itr_to_list(CTX.check_all_once_n_write())
     results03_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     #
     assert len(checks03) == 2, f"{checks03} - {type(checks03)}"
@@ -164,7 +164,7 @@ async def test_simple_checks_workflow(setup_module):
         )
     )
     checks04 = await async_itr_to_list(await CTX.checks.read_all())
-    results04_only_last_2_results = await async_itr_to_list(CTX.check_once_all_websites_n_write())
+    results04_only_last_2_results = await async_itr_to_list(CTX.check_all_once_n_write())
     results04_all_results = await async_itr_to_list(CTX.results.read_last_n(PRACTICAL_MAX_INT))
     #
     assert len(checks04) == 2, f"{checks04} - {type(checks04)}"

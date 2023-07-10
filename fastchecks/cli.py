@@ -198,14 +198,14 @@ _add_check_website(subparsers)
 # -----------------------------------------------------------------------------
 
 
-def _check_once_all(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+def _check_all_once(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
-        "check_once_all", help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)"
+        "check_all_once", help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)"
     )
 
     async def fun(x: NamedArgs):
         c = 0
-        async for check in x.ctx.check_once_all_websites_n_write():
+        async for check in x.ctx.check_all_once_n_write():
             c += 1
             print(f"{util.str_pad(c)}: {check}")
 
@@ -214,7 +214,7 @@ def _check_once_all(subparsers: argparse._SubParsersAction) -> tuple[argparse._S
     return (subparsers, cmd)
 
 
-_check_once_all(subparsers)
+_check_all_once(subparsers)
 
 
 # -----------------------------------------------------------------------------

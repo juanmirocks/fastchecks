@@ -86,7 +86,7 @@ class ChecksRunnerContext:
         await self.results.write(ret)
         return ret
 
-    async def check_once_all_websites_n_write(self) -> AsyncIterator[CheckResult]:
+    async def check_all_once_n_write(self) -> AsyncIterator[CheckResult]:
         async for check in self.checks.read_n(util.PRACTICAL_MAX_INT):
             result = await self.check_only(check)
             await self.results.write(result)

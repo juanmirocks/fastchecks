@@ -1,7 +1,7 @@
 import datetime
 from pydantic import BaseModel
 
-from fastchecks.util import validate_regex, validate_url
+from fastchecks import vutil
 from fastchecks import conf, require
 
 
@@ -21,9 +21,9 @@ class WebsiteCheck(BaseModel):
 
         If the URL or regex are invalid, raise ValueError.
         """
-        validate_url(url)
+        vutil.validate_url(url)
         if regex is not None:
-            validate_regex(regex)
+            vutil.validate_regex(regex)
         return cls(url=url, regex=regex)
 
     @classmethod

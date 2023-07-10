@@ -11,6 +11,10 @@ from fastchecks import meta
 
 # ---------------------------------------------------------------------------
 
+#
+# Main parser
+#
+
 parser = argparse.ArgumentParser(
     prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
 )
@@ -29,7 +33,9 @@ subparsers = parser.add_subparsers(
 
 # -----------------------------------------------------------------------------
 
+#
 # Common arguments
+#
 
 
 def _url_kwargs(**kwargs) -> dict[str, Any]:
@@ -54,27 +60,33 @@ def _interval_kwargs(**kwargs) -> dict[str, Any]:
 
 # -----------------------------------------------------------------------------
 
-upsert_check = subparsers.add_parser(
-    "upsert_check",
-    help="Write a new check to the data store, or update an existing check (uniquely identified by its URL)",
-)
 
-
-async def upsert_check_fun(x: NamedArgs):
-    await x.ctx.checks.upsert(
-        # The args are already validated, but just in case
-        WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
+def add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    command = subparsers.add_parser(
+        "upsert_check",
+        help="Write a new check to the data store, or update an existing check (uniquely identified by its URL)",
     )
 
+    command.add_argument("url", **_url_kwargs())
+    command.add_argument("--regex", **_regex_kwargs())
+    command.add_argument("--interval", **_interval_kwargs())
 
-upsert_check.set_defaults(fun=upsert_check_fun)
+    async def fun(x: NamedArgs):
+        print(x)
+        await x.ctx.checks.upsert(
+            # The args are already validated, but just in case
+            WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
+        )
+
+    command.set_defaults(fun=fun)
+
+    return (subparsers, command)
 
 
-upsert_check.add_argument("url", **_url_kwargs())
-upsert_check.add_argument("--regex", **_regex_kwargs())
-upsert_check.add_argument("--interval", **_interval_kwargs())
+add_upsert_check(subparsers)
 
-#
+
+# -----------------------------------------------------------------------------
 
 read_all_checks = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
 
@@ -86,7 +98,7 @@ async def read_all_checks_fun(x: NamedArgs):
 
 read_all_checks.set_defaults(fun=read_all_checks_fun)
 
-#
+# -----------------------------------------------------------------------------
 
 delete_check = subparsers.add_parser(
     "delete_check",
@@ -94,7 +106,7 @@ delete_check = subparsers.add_parser(
 )
 delete_check.add_argument("url", **_url_kwargs(help="The check's URL to delete"))
 
-#
+# -----------------------------------------------------------------------------
 
 check_website_only = subparsers.add_parser(
     "check_website_only",
@@ -103,7 +115,7 @@ check_website_only = subparsers.add_parser(
 check_website_only.add_argument("url", **_url_kwargs())
 check_website_only.add_argument("--regex", **_regex_kwargs())
 
-#
+# -----------------------------------------------------------------------------
 
 check_website = subparsers.add_parser(
     "check_website", help="Check given single website once and write the result in the data store"
@@ -111,13 +123,13 @@ check_website = subparsers.add_parser(
 check_website.add_argument("url", **_url_kwargs())
 check_website.add_argument("--regex", **_regex_kwargs())
 
-#
+# -----------------------------------------------------------------------------
 
 check_all_once = subparsers.add_parser(
     "check_all_once", help="Check all websites once and write the results in the data store"
 )
 
-#
+# -----------------------------------------------------------------------------
 
 
 _DEFAULT_READ_N_RESULTS = 100
@@ -151,6 +163,9 @@ async def main(args: NamedArgs) -> None:
         await args.fun(args)
 
         await asyncio.sleep(1)
+
+
+# -----------------------------------------------------------------------------
 
 
 async def main_old() -> None:

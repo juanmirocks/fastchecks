@@ -20,6 +20,7 @@ parser.add_argument(
     default=conf._POSTGRES_CONNINFO,
 )
 subparsers = parser.add_subparsers(title="Commands",
+                                   dest="command",
                                    description=" ",
                                    help="Info:",
                                    )

@@ -22,21 +22,13 @@ def validate_in_range(name: str, val: Number, min: Number, max: Number) -> Numbe
     return val
 
 
-def validate_postgres_conninfo(conninfo: str) -> str:
-    prefix = "postgresql://"
-    require(
-        conninfo.startswith(prefix),
-        f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
-    )
-    return conninfo
-
-
 def validate_url(url: str, raise_error: bool = True) -> str | None:
     """
-    Validate given string is a valid URL.
-
-    If the URL is valid, return its netloc (e.g. "www.example.com").
-    Else if raise_error is True, raise ValueError.
+    Validate that the given string is a valid URL.
+    * If the URL is valid, return its netloc (e.g. "www.example.com").
+    * Else:
+        * if raise_error is True, raise ValueError.
+        * else, return None.
     """
     # See: https://snyk.io/blog/secure-python-url-validation/
 
@@ -48,12 +40,22 @@ def validate_url(url: str, raise_error: bool = True) -> str | None:
         ret = None
 
     if ret:
+        # this means ret is a non-empty string (a truthy value)
         return ret
     elif raise_error:
         raise ValueError(f"Invalid URL: {url}")
     else:
         # ret could have been (without exception) the empty string (which is also falsy), but we return None to avoid confusions
         return None
+
+
+def validate_postgres_conninfo(conninfo: str) -> str:
+    prefix = "postgresql://"
+    require(
+        conninfo.startswith(prefix) and validate_url(conninfo, raise_error=False),
+        f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
+    )
+    return conninfo
 
 
 def validate_regex(regex: str, raise_error: bool = True) -> re2._Regexp | None:

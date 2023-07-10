@@ -7,17 +7,17 @@ def test_valvalidated_web_urlidate_web_url():
 
     assert fun("http://example.com") is not None
     assert fun("https://example.com") is not None
-    assert fun("HTTPS://example.com") is not None # scheme is case-insensitive
-    assert fun("httPS://example.com") is not None # scheme is case-insensitive
+    assert fun("HTTPS://example.com") is not None  # scheme is case-insensitive
+    assert fun("httPS://example.com") is not None  # scheme is case-insensitive
 
     with pytest.raises(ValueError):
-        assert fun("file://example.com") # scheme is not web's
+        assert fun("file://example.com")  # scheme is not web's
 
     with pytest.raises(ValueError):
-        assert fun("ftp://example.com") # scheme is not web's
+        assert fun("ftp://example.com")  # scheme is not web's
 
     with pytest.raises(ValueError):
-        assert fun("wrong://example.com") # it's just a wrong scheme
+        assert fun("wrong://example.com")  # it's just a wrong scheme
 
 
 def test_validated_postgres_conninfo():
@@ -27,24 +27,23 @@ def test_validated_postgres_conninfo():
     assert fun("postgres://localhost/dbname") is not None
     assert fun("postgresql://localhost") is not None
     assert fun("postgresql://localhost/dbname") is not None
-    assert fun("postgreSQL://localhost") is not None # scheme is case-insensitive
-    assert fun("postgreSQL://localhost/dbname") is not None # scheme is case-insensitive
+    assert fun("postgreSQL://localhost") is not None  # scheme is case-insensitive
+    assert fun("postgreSQL://localhost/dbname") is not None  # scheme is case-insensitive
 
     with pytest.raises(ValueError):
-        assert fun("http://localhost") # scheme is not pg's
+        assert fun("http://localhost")  # scheme is not pg's
 
     with pytest.raises(ValueError):
-        assert fun("https://localhost") # scheme is not pg's
+        assert fun("https://localhost")  # scheme is not pg's
 
     with pytest.raises(ValueError):
-        assert fun("file://localhost") # scheme is not pg's
+        assert fun("file://localhost")  # scheme is not pg's
 
     with pytest.raises(ValueError):
-        assert fun("ftp://localhost") # scheme is not pg's
+        assert fun("ftp://localhost")  # scheme is not pg's
 
     with pytest.raises(ValueError):
-        assert fun("wrong://localhost") # it's just a wrong scheme
-
+        assert fun("wrong://localhost")  # it's just a wrong scheme
 
 
 def test_validate_regex():

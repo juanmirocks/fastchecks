@@ -15,21 +15,16 @@ from fastchecks import meta
 # Main parser
 #
 
-parser = argparse.ArgumentParser(
+PARSER = argparse.ArgumentParser(
     prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
 )
-parser.add_argument(
+PARSER.add_argument(
     "--pg_conninfo",
     type=vutil.validated_postgres_conninfo,
     help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
     default=conf._POSTGRES_CONNINFO,
 )
-subparsers = parser.add_subparsers(
-    title="Commands",
-    dest="command",
-    description=" ",
-    help="Info:",
-)
+
 
 # -----------------------------------------------------------------------------
 
@@ -60,6 +55,19 @@ def _interval_kwargs(**kwargs) -> dict[str, Any]:
 
 # -----------------------------------------------------------------------------
 
+#
+# Following subparsers (commands)
+#
+
+SUBPARSERS = PARSER.add_subparsers(
+    title="Commands",
+    dest="command",
+    description=" ",
+    help="Info:",
+)
+
+# -----------------------------------------------------------------------------
+
 
 def _add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
@@ -82,7 +90,7 @@ def _add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
     return (subparsers, cmd)
 
 
-_add_upsert_check(subparsers)
+_add_upsert_check(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -103,7 +111,7 @@ def _add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argpar
     return (subparsers, cmd)
 
 
-_add_read_all_checks(subparsers)
+_add_read_all_checks(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -124,7 +132,7 @@ def _add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
     return (subparsers, cmd)
 
 
-_add_delete_check(subparsers)
+_add_delete_check(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -135,18 +143,20 @@ def _add_delete_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argp
         "delete_all_checks",
         help="Delete all checks from the data store (use with caution)",
     )
-    cmd.add_argument("--confirm", help="For safety, you must activate this flag to delete all checks", action="store_true")
+    cmd.add_argument(
+        "--confirm", help="For safety, you must activate this flag to delete all checks", action="store_true"
+    )
 
     async def fun(x: NamedArgs):
         ret = await x.ctx.checks.delete_all(x.confirm)
-        print("done" if ret <0 else ret)
+        print("done" if ret < 0 else ret)
 
     cmd.set_defaults(fun=fun)
 
     return (subparsers, cmd)
 
 
-_add_delete_all_checks(subparsers)
+_add_delete_all_checks(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -169,7 +179,7 @@ def _add_check_website_only(subparsers: argparse._SubParsersAction) -> tuple[arg
     return (subparsers, cmd)
 
 
-_add_check_website_only(subparsers)
+_add_check_website_only(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -192,7 +202,7 @@ def _add_check_website(subparsers: argparse._SubParsersAction) -> tuple[argparse
     return (subparsers, cmd)
 
 
-_add_check_website(subparsers)
+_add_check_website(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -200,7 +210,8 @@ _add_check_website(subparsers)
 
 def _check_all_once(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
-        "check_all_once", help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)"
+        "check_all_once",
+        help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)",
     )
 
     async def fun(x: NamedArgs):
@@ -214,7 +225,7 @@ def _check_all_once(subparsers: argparse._SubParsersAction) -> tuple[argparse._S
     return (subparsers, cmd)
 
 
-_check_all_once(subparsers)
+_check_all_once(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -222,7 +233,8 @@ _check_all_once(subparsers)
 
 def _check_all_loop_fg(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
-        "check_all_loop_fg", help=f"Check all websites in the foreground at the scheduled intervals (or {conf.DEFAULT_CHECK_INTERVAL_SECONDS}s for checks without an interval)"
+        "check_all_loop_fg",
+        help=f"Check all websites in the foreground at the scheduled intervals (or {conf.DEFAULT_CHECK_INTERVAL_SECONDS}s for checks without an interval)",
     )
 
     async def fun(x: NamedArgs):
@@ -233,7 +245,7 @@ def _check_all_loop_fg(subparsers: argparse._SubParsersAction) -> tuple[argparse
     return (subparsers, cmd)
 
 
-_check_all_loop_fg(subparsers)
+_check_all_loop_fg(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
@@ -262,13 +274,14 @@ def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argp
     return (subparsers, cmd)
 
 
-_add_read_last_results(subparsers)
+_add_read_last_results(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
 
+
 def parse_args(argv: list[str]) -> NamedArgs:
-    args = parser.parse_args(argv)
+    args = PARSER.parse_args(argv)
 
     if args.command is None:
         print("Error: you must specify a command")
@@ -279,6 +292,7 @@ def parse_args(argv: list[str]) -> NamedArgs:
 
 def parse_str_args(argv: str) -> NamedArgs:
     return parse_args(argv.split())
+
 
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated

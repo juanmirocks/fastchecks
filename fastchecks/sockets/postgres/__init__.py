@@ -57,7 +57,6 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
             )
             return cur.rowcount
 
-
     async def delete_all(self, confirm: bool) -> int:
         if confirm:
             async with self.__pool.connection() as aconn:

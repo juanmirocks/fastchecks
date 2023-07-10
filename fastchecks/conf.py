@@ -44,12 +44,12 @@ DEFAULT_CHECK_INTERVAL_SECONDS: int = get_typed_envar(
 )
 
 
-def parse_validate_interval(interval_seconds: str) -> int:
+def validated_parsed_interval(interval_seconds: str) -> int:
     return validate_interval(int(interval_seconds))
 
 
 def validate_interval(interval_seconds: int, name: str = "interval") -> int:
-    return vutil.validate_in_range(name, interval_seconds, MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
+    return vutil.validated_in_range(name, interval_seconds, MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
 
 
 validate_interval(DEFAULT_CHECK_INTERVAL_SECONDS, name="FC_DEFAULT_CHECK_INTERVAL_SECONDS")
@@ -76,4 +76,4 @@ def get_postgres_conninfo() -> str:
     Return the Postgres conninfo envar value, or raise ValueError if the environment variable is not set or invalid.
     """
     ret = read_envar_value(_POSTGRES_CONNINFO_ENVAR_NAME, _POSTGRES_CONNINFO)
-    return vutil.validate_postgres_conninfo(ret)
+    return vutil.validated_postgres_conninfo(ret)

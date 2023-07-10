@@ -1,7 +1,10 @@
 #
 # Utils for validating data values, specifically user inputs.
+# - Further validation functions are defined conf module (which depend on configuration values).
 #
-# Further validation functions are defined conf module (which depend on configuration values).
+# Conventions:
+# * Functions that validate a value and (if valid) return it, are prefixed with "validated_".
+# * Functions that validate a value and (if valid) return an optionally computed value, are prefixed with "validate_".
 #
 
 from numbers import Number
@@ -11,12 +14,12 @@ import re2
 from fastchecks import meta, require
 
 
-def validate_is_positive(val: Number) -> Number:
+def validated_is_positive(val: Number) -> Number:
     require(val > 0, f"Value must be positive: {val}")
     return val
 
 
-def validate_in_range(name: str, val: Number, min: Number, max: Number) -> Number:
+def validated_in_range(name: str, val: Number, min: Number, max: Number) -> Number:
     """
     Validate that the given value is between the given min and max, and return it if it is, otherwise raise ValueError.
     """
@@ -27,7 +30,7 @@ def validate_in_range(name: str, val: Number, min: Number, max: Number) -> Numbe
     return val
 
 
-def validate_url_get_netloc(url: str, raise_error: bool = True) -> str | None:
+def validate_url(url: str, raise_error: bool = True) -> str | None:
     """
     Validate that the given string is a valid URL.
     * If the URL is valid, return its netloc (e.g. "www.example.com").
@@ -54,21 +57,21 @@ def validate_url_get_netloc(url: str, raise_error: bool = True) -> str | None:
         return None
 
 
-def validate_url(url: str) -> str:
-    validate_url_get_netloc(url, raise_error=True)
+def validated_url(url: str) -> str:
+    validate_url(url, raise_error=True)
     return url
 
 
-def validate_postgres_conninfo(conninfo: str) -> str:
+def validated_postgres_conninfo(conninfo: str) -> str:
     prefix = "postgresql://"
     require(
-        conninfo.startswith(prefix) and validate_url_get_netloc(conninfo, raise_error=False),
+        conninfo.startswith(prefix) and validate_url(conninfo, raise_error=False),
         f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
     )
     return conninfo
 
 
-def validate_regex_get_pattern(regex: str, raise_error: bool = True) -> re2._Regexp | None:
+def validate_regex(regex: str, raise_error: bool = True) -> re2._Regexp | None:
     """
     Validate regex string: the regex must be compilable with google's re2 library.
 
@@ -86,14 +89,14 @@ def validate_regex_get_pattern(regex: str, raise_error: bool = True) -> re2._Reg
             return None
 
 
-def validate_regex(regex: str) -> str:
-    validate_regex_get_pattern(regex, raise_error=True)
+def validated_regex(regex: str) -> str:
+    validate_regex(regex, raise_error=True)
     return regex
 
 
-def validate_regex_accepting_none(regex: str | None) -> str | None:
+def validated_regex_accepting_none(regex: str | None) -> str | None:
     if regex is None:
         return None
     else:
-        validate_regex_get_pattern(regex, raise_error=True)
+        validate_regex(regex, raise_error=True)
         return regex

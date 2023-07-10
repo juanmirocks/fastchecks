@@ -14,12 +14,12 @@ from fastchecks import meta
 
 
 def _url_kwargs(**kwargs) -> dict[str, Any]:
-    return {"type": vutil.validate_url, "help": "The URL to check", **kwargs}
+    return {"type": vutil.validated_url, "help": "The URL to check", **kwargs}
 
 
 def _regex_kwargs(**kwargs) -> dict[str, Any]:
     return {
-        "type": vutil.validate_regex,
+        "type": vutil.validated_regex,
         "help": "(Default: no check) The regex to match against the response body",
         **kwargs,
     }
@@ -27,7 +27,7 @@ def _regex_kwargs(**kwargs) -> dict[str, Any]:
 
 def _interval_kwargs(**kwargs) -> dict[str, Any]:
     return {
-        "type": conf.parse_validate_interval,
+        "type": conf.validated_parsed_interval,
         "help": f"(Default: {conf.DEFAULT_CHECK_INTERVAL_SECONDS}) The interval in _seconds_ for a check when it is scheduled to be run periodically (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS})",
         **kwargs,
     }
@@ -95,7 +95,7 @@ _DEFAULT_READ_N_RESULTS = 100
 
 read_last_results = subparsers.add_parser("read_last_results", help="Read the last results from the data store")
 read_last_results.add_argument(
-    "n", type=vutil.validate_is_positive, help=f"(Default: {_DEFAULT_READ_N_RESULTS}) The number of results to read"
+    "n", type=vutil.validated_is_positive, help=f"(Default: {_DEFAULT_READ_N_RESULTS}) The number of results to read"
 )
 
 

@@ -200,7 +200,7 @@ _add_check_website(subparsers)
 
 def _check_once_all(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
-        "check_once_all", help="Check all websites once and write the results in the data store"
+        "check_once_all", help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)"
     )
 
     async def fun(x: NamedArgs):
@@ -220,6 +220,25 @@ _check_once_all(subparsers)
 # -----------------------------------------------------------------------------
 
 
+def _check_all_loop_fg(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "check_all_loop_fg", help=f"Check all websites in the foreground at the scheduled intervals (or {conf.DEFAULT_CHECK_INTERVAL_SECONDS}s for checks without an interval)"
+    )
+
+    async def fun(x: NamedArgs):
+        await x.ctx.run_checks_until_stopped_in_foreground()
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_check_all_loop_fg(subparsers)
+
+
+# -----------------------------------------------------------------------------
+
+
 def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     _DEFAULT_READ_N_RESULTS = 100
 
@@ -232,6 +251,7 @@ def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argp
     )
 
     async def fun(x: NamedArgs):
+        print("(last results first)")
         c = 0
         async for result in x.ctx.results.read_last_n(x.n):
             c += 1
@@ -247,15 +267,18 @@ _add_read_last_results(subparsers)
 
 # -----------------------------------------------------------------------------
 
+def parse_args(argv: list[str]) -> NamedArgs:
+    args = parser.parse_args(argv)
+
+    if args.command is None:
+        print("Error: you must specify a command")
+        sys.exit(2)
+
+    return args
+
 
 def parse_str_args(argv: str) -> NamedArgs:
     return parse_args(argv.split())
-
-
-def parse_args(argv: list[str]) -> NamedArgs:
-    args = parser.parse_args(argv)
-    return args
-
 
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated

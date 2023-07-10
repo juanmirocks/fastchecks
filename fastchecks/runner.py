@@ -122,12 +122,15 @@ class ChecksRunnerContext:
         """
         try:
             async with AsyncScheduler() as scheduler:
+                default_interval_msg = f" -- with default interval: {self.default_interval_seconds}s"
+
                 async for check in await self.checks.read_all():
-                    logging.info(f"Adding check to scheduler: {check}")
                     await self._add_check_to_scheduler(scheduler, check)
+                    print(f"Adding check to scheduler: {check}{'' if check.interval_seconds else default_interval_msg}")
 
                 require(len(await scheduler.get_schedules()) != 0, "No checks to run. Add some checks first.")
 
+                print("\nRunning until stopped...")
                 await scheduler.run_until_stopped()
 
         except (KeyboardInterrupt, SystemExit):

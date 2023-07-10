@@ -1,13 +1,15 @@
 import datetime
 from pydantic import BaseModel
 
-from fastchecks import vutil
+from fastchecks import util, vutil
 from fastchecks import conf, require
 
 
 # We use Pydantic classes for type safety and because they could be handy in the future for de/serialization.
 # See benchmarks with other alternatives (e.g. NamedTuple): https://janhendrikewers.uk/pydantic_vs_protobuf_vs_namedtuple_vs_dataclasses.html
 # Note that Pydantic V2 (released in 2023 June) promises a 5-50x speedup over V1: https://docs.pydantic.dev/2.0/blog/pydantic-v2-alpha/#headlines
+
+_MAX_REPR_LEN: int = 500
 
 
 class WebsiteCheck(BaseModel):
@@ -31,6 +33,12 @@ class WebsiteCheck(BaseModel):
         Only use this method if you are sure that the URL and regex are valid (e.g., they were validated before).
         """
         return cls(url=url, regex=regex)
+
+    def __repr__(self) -> str:
+        return util.shorten_str(super().__repr__(), max=_MAX_REPR_LEN)
+
+    def __str__(self) -> str:
+        return util.shorten_str(super().__repr__(), max=_MAX_REPR_LEN)
 
 
 class WebsiteCheckScheduled(WebsiteCheck):
@@ -85,6 +93,12 @@ class CheckResult(BaseModel):
 
         if self.check.regex is None:
             require(self.regex_match is None, "If there is no regex, regex_match MUST be None.")
+
+    def __repr__(self) -> str:
+        return util.shorten_str(super().__repr__(), max=_MAX_REPR_LEN)
+
+    def __str__(self) -> str:
+        return util.shorten_str(super().__repr__(), max=_MAX_REPR_LEN)
 
     def is_success(self) -> bool:
         """

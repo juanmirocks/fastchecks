@@ -23,6 +23,16 @@ https://stackoverflow.com/a/1406210/341320
 """
 
 
+def str_pad(c: int, size: int = 3) -> str:
+    return str(c).zfill(size)
+
+
+def shorten_str(x: str, max=100) -> str:
+    if len(x) > max:
+        x = x[:max] + "..."
+    return x
+
+
 def replace_url_last_segment(url: str, new_segment: str) -> str:
     """
     Example behavior (new_segment = "fastchecks"), urls:

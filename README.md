@@ -8,9 +8,9 @@
 # Features
 
 * All operations are asynchronous. This app sits on 3 giants:
+  * aiohttp
   * psycopg (v3)
   * APScheduler (v4)
-  * aiohttp
 * Speedy regex checking thanks to [google-re2 regex](https://github.com/google/re2). Note that [google-re2 syntax](https://github.com/google/re2/wiki/Syntax) is very similar to python's native `re` but not equal. In particular, backreferences are not supported, to gain on speed and [safety](https://snyk.io/blog/redos-and-catastrophic-backtracking/).
 * Code is fully [type-annotated](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
 

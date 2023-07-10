@@ -44,7 +44,7 @@ DEFAULT_CHECK_INTERVAL_SECONDS: int = get_typed_envar(
 )
 
 
-def parse_interval(interval_seconds: str) -> int:
+def parse_validate_interval(interval_seconds: str) -> int:
     return validate_interval(int(interval_seconds))
 
 

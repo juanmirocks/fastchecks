@@ -23,7 +23,7 @@ def _regex_kwargs(**kwargs) -> dict[str, Any]:
 
 def _interval_kwargs(**kwargs) -> dict[str, Any]:
     return {
-        "type": conf.parse_interval,
+        "type": conf.parse_validate_interval,
         "help": f"(Default: {conf.DEFAULT_CHECK_INTERVAL_SECONDS}) The interval in _seconds_ for a check when it is scheduled to be run periodically (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS})",
         **kwargs,
     }

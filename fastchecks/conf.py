@@ -1,6 +1,6 @@
 import os
 from typing import Callable, TypeVar
-from fastchecks import require
+from fastchecks import require, meta
 
 
 _CONVERSION_OUTPUT = TypeVar("_CONVERSION_OUTPUT")
@@ -45,6 +45,11 @@ DEFAULT_CHECK_INTERVAL_SECONDS: int = get_typed_envar(
 )
 
 
+def parse_interval(interval_seconds: str) -> int:
+    # If the interval is not a string, that exception will be caught later
+    return validate_interval(int(interval_seconds))
+
+
 def validate_interval(interval_seconds: int) -> int:
     """
     Validate the given interval, and return it if it is valid, otherwise raise ValueError.
@@ -70,11 +75,22 @@ For reference, the size of https://python.org is, as of 2023-07-06, 49943 bytes.
 
 # -----------------------------------------------------------------------------
 
-_POSTGRES_CONNINFO: str | None = os.environ.get("FC_POSTGRES_CONNINFO")
+_POSTGRES_CONNINFO_ENVAR_NAME = "FC_POSTGRES_CONNINFO"
+
+_POSTGRES_CONNINFO: str | None = os.environ.get(_POSTGRES_CONNINFO_ENVAR_NAME)
 
 
 def get_postgres_conninfo() -> str:
     """
     Return the Postgres local connection string, or raise ValueError if the environment variable is not set.
     """
-    return read_envar_value("_POSTGRES_CONNINFO", _POSTGRES_CONNINFO)
+    return read_envar_value(_POSTGRES_CONNINFO_ENVAR_NAME, _POSTGRES_CONNINFO)
+
+
+def validate_postgres_conninfo(conninfo: str) -> str:
+    prefix = "postgresql://"
+    require(
+        conninfo.startswith(prefix),
+        f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
+    )
+    return conninfo

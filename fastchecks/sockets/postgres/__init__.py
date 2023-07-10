@@ -22,7 +22,8 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
             (url, regex, interval_seconds)
             VALUES (%s, %s, %s)
             ON CONFLICT (url) DO UPDATE
-                SET regex = EXCLUDED.regex;
+                SET regex = EXCLUDED.regex,
+                    interval_seconds = EXCLUDED.interval_seconds;
             """,
                 (check.url, check.regex, check.interval_seconds),
             )

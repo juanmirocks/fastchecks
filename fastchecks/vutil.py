@@ -11,6 +11,11 @@ import re2
 from fastchecks import meta, require
 
 
+def validate_is_positive(val: Number) -> Number:
+    require(val > 0, f"Value must be positive: {val}")
+    return val
+
+
 def validate_in_range(name: str, val: Number, min: Number, max: Number) -> Number:
     """
     Validate that the given value is between the given min and max, and return it if it is, otherwise raise ValueError.

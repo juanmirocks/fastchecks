@@ -62,14 +62,14 @@ def _interval_kwargs(**kwargs) -> dict[str, Any]:
 
 
 def add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
-    command = subparsers.add_parser(
+    cmd = subparsers.add_parser(
         "upsert_check",
         help="Write a new check to the data store, or update an existing check (uniquely identified by its URL)",
     )
 
-    command.add_argument("url", **_url_kwargs())
-    command.add_argument("--regex", **_regex_kwargs())
-    command.add_argument("--interval", **_interval_kwargs())
+    cmd.add_argument("url", **_url_kwargs())
+    cmd.add_argument("--regex", **_regex_kwargs())
+    cmd.add_argument("--interval", **_interval_kwargs())
 
     async def fun(x: NamedArgs):
         await x.ctx.checks.upsert(
@@ -77,9 +77,9 @@ def add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._
             WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
         )
 
-    command.set_defaults(fun=fun)
+    cmd.set_defaults(fun=fun)
 
-    return (subparsers, command)
+    return (subparsers, cmd)
 
 
 add_upsert_check(subparsers)
@@ -89,15 +89,15 @@ add_upsert_check(subparsers)
 
 
 def add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
-    command = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
+    cmd = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
 
     async def fun(x: NamedArgs):
         async for check in await x.ctx.checks.read_all():
             print(check)
 
-    command.set_defaults(fun=fun)
+    cmd.set_defaults(fun=fun)
 
-    return (subparsers, command)
+    return (subparsers, cmd)
 
 
 add_read_all_checks(subparsers)

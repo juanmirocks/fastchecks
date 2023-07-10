@@ -58,9 +58,6 @@ def _interval_kwargs(**kwargs) -> dict[str, Any]:
     }
 
 
-
-
-
 # -----------------------------------------------------------------------------
 
 
@@ -178,9 +175,25 @@ _add_check_website(subparsers)
 
 # -----------------------------------------------------------------------------
 
-check_all_once = subparsers.add_parser(
-    "check_all_once", help="Check all websites once and write the results in the data store"
-)
+
+def _check_once_all(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "check_once_all", help="Check all websites once and write the results in the data store"
+    )
+
+    async def fun(x: NamedArgs):
+        c = 0
+        async for check in x.ctx.check_once_all_websites_n_write():
+            c += 1
+            print(f"{util.str_pad(c)}: {check}")
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_check_once_all(subparsers)
+
 
 # -----------------------------------------------------------------------------
 
@@ -245,9 +258,6 @@ async def main_old() -> None:
 
     async with ctx:
         match opr:
-            case "check_once_all_websites_and_write":
-                await ctx.check_once_all_websites_n_write()
-
             case _:
                 raise ValueError(f"Unknown opr: {opr}")
 

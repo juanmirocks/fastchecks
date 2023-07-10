@@ -1,8 +1,69 @@
+import argparse
 import asyncio
 import sys
+from typing import Any
+
 from fastchecks import conf, require
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
+from fastchecks import meta
+
+# -----------------------------------------------------------------------------
+
+parser = argparse.ArgumentParser(
+    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
+)
+subparsers = parser.add_subparsers(title="Commands")
+
+# -----------------------------------------------------------------------------
+
+# Common arguments
+
+
+def _url_kwargs(**kwargs) -> dict[str, Any]:
+    return {"type": str, "help": "The URL to check", **kwargs}
+
+
+def _regex_kwargs(**kwargs) -> dict[str, Any]:
+    return {"type": str, "help": "(Default: no check) The regex to match against the response body", **kwargs}
+
+
+def _interval_kwargs(**kwargs) -> dict[str, Any]:
+    return {
+        "type": int,
+        "help": f"(Default: {conf.DEFAULT_CHECK_INTERVAL_SECONDS}) The interval in _seconds_ for a check when it is scheduled to be run periodically (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS})",
+        **kwargs,
+    }
+
+
+# -----------------------------------------------------------------------------
+
+upsert_check = subparsers.add_parser(
+    "upsert_check",
+    help="Write a new check to the data store, or update an existing check (uniquely identified by its URL)",
+)
+upsert_check.add_argument("url", **_url_kwargs())
+upsert_check.add_argument("--regex", **_regex_kwargs())
+upsert_check.add_argument("--interval", **_interval_kwargs())
+
+#
+
+read_all_checks = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
+
+#
+
+delete_check = subparsers.add_parser(
+    "delete_check",
+    help="Delete a check from the data store",
+)
+delete_check.add_argument("url", **_url_kwargs(help="The check's URL to delete"))
+
+# -----------------------------------------------------------------------------
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    args = parser.parse_args(argv)
+    return args
 
 
 class __ResultsParams:
@@ -12,12 +73,6 @@ class __ResultsParams:
 
 
 async def main() -> None:
-    require(len(sys.argv) in (3, 4), "Usage: python -m fastchecks.cli <opr> <url> [regex]")
-
-    opr = sys.argv[1]
-    url = sys.argv[2]
-    regex_str_opt = sys.argv[3] if len(sys.argv) == 4 else None
-
     ctx = ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo())
 
     async with ctx:
@@ -55,6 +110,9 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    # ignore the first argument, which is the program name/path
+    parse_args(sys.argv[1:])
+
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):

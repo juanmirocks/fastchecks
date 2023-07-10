@@ -39,18 +39,9 @@ class ChecksRunnerContext:
         self.default_interval_seconds = (
             conf.DEFAULT_CHECK_INTERVAL_SECONDS
             if default_interval_seconds is None
-            else conf.validate_interval(default_interval_seconds)
+            else conf.validated_interval(default_interval_seconds)
         )
         """Default interval for website checks that don't specify it"""
-
-    async def __aenter__(self) -> "ChecksRunnerContext":
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        await asyncio.gather(self._aiohttp_session.close(), self.checks.close(), self.results.close())
-
-    async def close(self) -> None:
-        await self.__aexit__(None, None, None)
 
     # -----------------------------------------------------------------------------
 
@@ -64,6 +55,22 @@ class ChecksRunnerContext:
             results=CheckResultSocketPostgres(postgres_conninfo),
             **kwargs,
         )
+
+    # -----------------------------------------------------------------------------
+
+    async def __aenter__(self) -> "ChecksRunnerContext":
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        await asyncio.gather(self._aiohttp_session.close(), self.checks.close(), self.results.close())
+
+    async def close(self) -> None:
+        await self.__aexit__(None, None, None)
+
+    # -----------------------------------------------------------------------------
+
+    def get_interval_seconds(self, check: WebsiteCheckScheduled) -> int:
+        return self.default_interval_seconds if check.interval_seconds is None else check.interval_seconds
 
     # -----------------------------------------------------------------------------
 
@@ -87,16 +94,13 @@ class ChecksRunnerContext:
 
     # -----------------------------------------------------------------------------
 
-    def _get_interval_seconds(self, check: WebsiteCheckScheduled) -> int:
-        return self.default_interval_seconds if check.interval_seconds is None else check.interval_seconds
-
     async def _add_check_to_scheduler(self, scheduler: AsyncScheduler, check: WebsiteCheckScheduled) -> AsyncScheduler:
         fun = self.check_n_write
 
         # Note: we can later retrieve scheduled checks by their url (with `AsyncScheduler.get_schedule``)
         # MAYBE (2023-07-09; future idea): tag the check with the url's domain, so later we can filter on them
         await scheduler.add_schedule(
-            fun, trigger=IntervalTrigger(seconds=self._get_interval_seconds(check)), id=check.url, args=[check]
+            fun, trigger=IntervalTrigger(seconds=self.get_interval_seconds(check)), id=check.url, args=[check]
         )
 
         return scheduler

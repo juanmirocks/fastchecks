@@ -4,9 +4,9 @@ import asyncio
 import sys
 from typing import Any
 
-from fastchecks import conf, vutil
+from fastchecks import conf, util, vutil
 from fastchecks.runner import ChecksRunnerContext
-from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
+from fastchecks.types import CheckResult, WebsiteCheck, WebsiteCheckScheduled
 from fastchecks import meta
 
 # ---------------------------------------------------------------------------
@@ -58,6 +58,9 @@ def _interval_kwargs(**kwargs) -> dict[str, Any]:
     }
 
 
+
+
+
 # -----------------------------------------------------------------------------
 
 
@@ -92,8 +95,11 @@ def _add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argpar
     cmd = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
 
     async def fun(x: NamedArgs):
+        # AFAIK, `enumerate`, nor `itertools` can handle an async iterator, so we enumerate manually
+        c = 0
         async for check in await x.ctx.checks.read_all():
-            print(check)
+            c += 1
+            print(f"{util.str_pad(c)}: {check}")
 
     cmd.set_defaults(fun=fun)
 
@@ -149,19 +155,18 @@ _add_check_website_only(subparsers)
 
 # -----------------------------------------------------------------------------
 
+
 def _add_check_website(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
-    "check_website", help="Check given single website once and write the result in the data store"
-)
+        "check_website", help="Check given single website once and write the result in the data store"
+    )
     cmd.add_argument("url", **_url_kwargs())
     cmd.add_argument("--regex", **_regex_kwargs())
-
 
     async def fun(x: NamedArgs):
         result = await x.ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
         await x.ctx.results.write(result)
         print(result)
-
 
     cmd.set_defaults(fun=fun)
 
@@ -169,8 +174,6 @@ def _add_check_website(subparsers: argparse._SubParsersAction) -> tuple[argparse
 
 
 _add_check_website(subparsers)
-
-
 
 
 # -----------------------------------------------------------------------------
@@ -194,8 +197,10 @@ def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argp
     )
 
     async def fun(x: NamedArgs):
+        c = 0
         async for result in x.ctx.results.read_last_n(x.n):
-            print(result)
+            c += 1
+            print(f"{util.str_pad(c)}: {result}")
 
     cmd.set_defaults(fun=fun)
 

@@ -49,11 +49,21 @@ skips = ["*/test_*.py"]
 [tool.poe.tasks]
 # format code
 fmt = "black ."
+
 # run tests with coverage -- for now do not use xdist's `-n auto` option
 test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=lcov:.cov/coverage.lcov"  # HTML possible too: --cov-report=html:.cov/html"
-lint_sec = "bandit -c pyproject.toml -r ."
+
+lint_bandit = "bandit -c pyproject.toml -r ."
+# snyk is not installed as a python dependency, but as a shell command (see how to install Snyk CLI: https://docs.snyk.io/snyk-cli/install-the-snyk-cli)
+lint_snyk.shell = "snyk code test; snyk test"
+lint_sec = ["lint_bandit", "lint_snyk"]
+
 lint_errors = "pyflakes ."
+
 lint_types.shell = "mypy || true"  # For now ignore possible non 0 exit code; but at least report
 lint_types_strict.shell = "mypy --strict || true"
-lint_all = ["lint_sec", "lint_errors", "lint_types"]
+
+# Snyk not added here since it might not be installed in the system
+lint_all = ["lint_bandit", "lint_errors", "lint_types"]
+
 test_n_lint = ["test", "lint_all"]

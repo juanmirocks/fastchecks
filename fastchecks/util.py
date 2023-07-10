@@ -79,7 +79,9 @@ def validate_regex(regex: str, raise_error: bool = True) -> re2._Regexp | None:
         return re2.compile(regex)
     except re2.error:
         if raise_error:
-            raise ValueError(f"Invalid regex (cannot compile it with google-re2 regex syntax https://github.com/google/re2/wiki/Syntax): {regex}")
+            raise ValueError(
+                f"Invalid regex (cannot compile it with google-re2 regex syntax https://github.com/google/re2/wiki/Syntax): {regex}"
+            )
         else:
             return None
 

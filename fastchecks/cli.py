@@ -34,7 +34,7 @@ subparsers = parser.add_subparsers(
 # -----------------------------------------------------------------------------
 
 #
-# Common arguments
+# Common command arguments
 #
 
 

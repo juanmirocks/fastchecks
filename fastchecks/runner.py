@@ -46,7 +46,7 @@ class ChecksRunnerContext:
     # -----------------------------------------------------------------------------
 
     @classmethod
-    def init_with_postgres(cls, postgres_conninfo: str, **kwargs) -> "ChecksRunnerContext":
+    def with_datastore_postgres(cls, postgres_conninfo: str, **kwargs) -> "ChecksRunnerContext":
         vutil.validated_postgres_conninfo(postgres_conninfo)
 
         return cls(

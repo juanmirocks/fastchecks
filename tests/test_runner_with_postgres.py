@@ -55,7 +55,7 @@ async def setup_module():
     with psycopg.connect(TEST_CONNINFO) as conn:
         print(conn.execute(init_sql).rowcount)
 
-    CTX = ChecksRunnerContext.init_with_postgres(TEST_CONNINFO, default_interval_seconds=1)
+    CTX = ChecksRunnerContext.with_datastore_postgres(TEST_CONNINFO, default_interval_seconds=1)
 
     yield "initialized"
 

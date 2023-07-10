@@ -16,7 +16,9 @@ from fastchecks import meta
 #
 
 PARSER = argparse.ArgumentParser(
-    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
+    prog=f"{meta.NAME}.cli (v{meta.VERSION})",
+    description=meta.DESCRIPTION,
+    epilog=f"For more help check: {meta.WEBSITE}",
 )
 PARSER.add_argument(
     "--pg_conninfo",
@@ -284,7 +286,8 @@ def parse_args(argv: list[str]) -> NamedArgs:
     args = PARSER.parse_args(argv)
 
     if args.command is None:
-        print("Error: you must specify a command")
+        print("(Error) you must specify a command\n")
+        PARSER.print_help()
         sys.exit(2)
 
     return args
@@ -297,7 +300,7 @@ def parse_str_args(argv: str) -> NamedArgs:
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated
 
-    async with ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo()) as ctx:
+    async with ChecksRunnerContext.with_datastore_postgres(conf.get_postgres_conninfo()) as ctx:
         await args.fun(ctx, args)
 
 

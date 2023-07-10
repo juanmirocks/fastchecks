@@ -9,7 +9,7 @@
 #
 
 from numbers import Number
-from urllib.parse import urlparse
+from urllib.parse import ParseResult, urlparse
 import re2
 
 from fastchecks import meta, require
@@ -35,47 +35,44 @@ def validated_in_range(name: str, val: Number, min: Number, max: Number) -> Numb
     return val
 
 
-def validate_url(url: str, raise_error: bool = True) -> str | None:
+ACCEPTED_WEB_URL_SCHEMES = {"http", "https"}
+
+
+def validate_url(url: str, accepted_schemes: set[str], raise_error: bool = True) -> ParseResult | None:
     """
-    Validate that the given string is a valid URL.
-    * If the URL is valid, return its netloc (e.g. "www.example.com").
+    Validate that the given string is a valid URL and has one of the accepted schemes.
+    * If the URL is valid, return the urlparse's parsed result.
     * Else:
         * if raise_error is True, raise ValueError.
         * else, return None.
     """
     # See: https://snyk.io/blog/secure-python-url-validation/
 
-    ret: str | None
     try:
-        result = urlparse(url)
-        ret = result.scheme and result.netloc
+        ret = urlparse(url)
+        accept: bool = bool(ret.scheme) and bool(ret.netloc) and ret.scheme in accepted_schemes
     except:
-        ret = None
+        return None
 
-    if ret:
-        # this means ret is a non-empty string (a truthy value)
+    if accept:
         return ret
     elif raise_error:
-        raise ValueError(f"Invalid URL (also it must start with a protocol, e.g. 'https://'): {url}")
+        raise ValueError(f"Invalid URL (also it must start with a scheme in: {accepted_schemes}): {url}")
     else:
-        # ret could have been (without exception) the empty string (which is also falsy), but we return None to avoid confusions
         return None
 
 
-def validated_url(url: str) -> str:
-    validate_url(url, raise_error=True)
+def validated_web_url(url: str) -> str:
+    validate_url(url, accepted_schemes=ACCEPTED_WEB_URL_SCHEMES, raise_error=True)
     return url
 
 
-def starts_with_valid_pg_conninfo_protocol(conninfo: str) -> bool:
-    """Return True iff the given conninfo starts with a valid URL Postgres protocol, else False"""
-    return conninfo.startswith("postgresql://") or conninfo.startswith("postgres://")
+ACCEPTED_PG_CONNINFO_URL_SCHEMES = {"postgres", "postgresql"}
 
 
 def validated_postgres_conninfo(conninfo: str) -> str:
-    require(
-        starts_with_valid_pg_conninfo_protocol(conninfo) and bool(validate_url(conninfo, raise_error=False)),
-        f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
+    require(validate_url(conninfo, accepted_schemes=ACCEPTED_PG_CONNINFO_URL_SCHEMES, raise_error=False) is not None,
+        f"The Postgres conninfo must be of URL form and start with a valid scheme ({ACCEPTED_PG_CONNINFO_URL_SCHEMES}) (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')"
     )
     return conninfo
 

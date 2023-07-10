@@ -39,7 +39,7 @@ subparsers = parser.add_subparsers(
 
 
 def _url_kwargs(**kwargs) -> dict[str, Any]:
-    return {"type": vutil.validated_url, "help": "The URL to check", **kwargs}
+    return {"type": vutil.validated_web_url, "help": "The URL to check", **kwargs}
 
 
 def _regex_kwargs(**kwargs) -> dict[str, Any]:

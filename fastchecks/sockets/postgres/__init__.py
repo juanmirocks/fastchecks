@@ -1,3 +1,4 @@
+import logging
 from typing import AsyncIterator
 from pydantic import PositiveInt
 from fastchecks.types import CheckResult, WebsiteCheckScheduled, WebsiteCheck
@@ -22,7 +23,8 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
             (url, regex, interval_seconds)
             VALUES (%s, %s, %s)
             ON CONFLICT (url) DO UPDATE
-                SET regex = EXCLUDED.regex;
+                SET regex = EXCLUDED.regex,
+                    interval_seconds = EXCLUDED.interval_seconds;
             """,
                 (check.url, check.regex, check.interval_seconds),
             )
@@ -45,14 +47,27 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
                     WebsiteCheck.without_validation(row.url, row.regex), row.interval_seconds
                 )
 
-    async def delete(self, url: str) -> None:
+    async def delete(self, url: str) -> int:
         async with self.__pool.connection() as aconn:
-            await aconn.execute(
+            cur = await aconn.execute(
                 """
             DELETE FROM WebsiteCheck
             WHERE url = %s;""",
                 (url,),
             )
+            return cur.rowcount
+
+    async def delete_all(self, confirm: bool) -> int:
+        if confirm:
+            async with self.__pool.connection() as aconn:
+                cur = await aconn.execute(
+                    """
+                TRUNCATE WebsiteCheck;"""
+                )
+                return cur.rowcount
+        else:
+            logging.warning("Not deleting all checks because confirm is False.")
+            return 0
 
     async def close(self) -> None:
         return await self.__pool.close()

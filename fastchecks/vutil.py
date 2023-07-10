@@ -56,7 +56,7 @@ def validate_url(url: str, raise_error: bool = True) -> str | None:
         # this means ret is a non-empty string (a truthy value)
         return ret
     elif raise_error:
-        raise ValueError(f"Invalid URL: {url}")
+        raise ValueError(f"Invalid URL (also it must start with a protocol, e.g. 'https://'): {url}")
     else:
         # ret could have been (without exception) the empty string (which is also falsy), but we return None to avoid confusions
         return None

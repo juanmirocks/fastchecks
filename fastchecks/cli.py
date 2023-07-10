@@ -105,11 +105,24 @@ add_read_all_checks(subparsers)
 
 # -----------------------------------------------------------------------------
 
-delete_check = subparsers.add_parser(
-    "delete_check",
-    help="Delete a check from the data store",
-)
-delete_check.add_argument("url", **_url_kwargs(help="The check's URL to delete"))
+
+def add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "delete_check",
+        help="Delete a check from the data store",
+    )
+    cmd.add_argument("url", **_url_kwargs(help="The check's URL to delete"))
+
+    async def fun(x: NamedArgs):
+        await x.ctx.checks.delete(x.url)
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+add_delete_check(subparsers)
+
 
 # -----------------------------------------------------------------------------
 
@@ -180,21 +193,6 @@ async def main_old() -> None:
 
     async with ctx:
         match opr:
-            case "upsert_check":
-                await ctx.checks.upsert(
-                    WebsiteCheckScheduled.with_check(
-                        WebsiteCheck.with_validation(url, regex_str_opt), interval_seconds=None
-                    )
-                )
-
-            case "read_all_checks":
-                await ctx.checks.read_all()
-
-            case "delete_check":
-                await ctx.checks.delete(url)
-
-            ###
-
             case "check_website_only":
                 await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
 

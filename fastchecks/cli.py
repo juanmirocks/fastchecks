@@ -14,12 +14,15 @@ parser = argparse.ArgumentParser(
     prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
 )
 parser.add_argument(
-    "--conninfo",
+    "--pg_conninfo",
     type=vutil.validated_postgres_conninfo,
     help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
     default=conf._POSTGRES_CONNINFO,
 )
-subparsers = parser.add_subparsers(title="Commands")
+subparsers = parser.add_subparsers(title="Commands",
+                                   description=" ",
+                                   help="Info:",
+                                   )
 
 # -----------------------------------------------------------------------------
 
@@ -72,23 +75,23 @@ delete_check.add_argument("url", **_url_kwargs(help="The check's URL to delete")
 
 check_website_only = subparsers.add_parser(
     "check_website_only",
-    help="Check a website once (without writing to the data store)",
+    help="Check given single website once (without writing to the data store)",
 )
 check_website_only.add_argument("url", **_url_kwargs())
 check_website_only.add_argument("--regex", **_regex_kwargs())
 
 #
 
-check_website_write = subparsers.add_parser(
-    "check_website_write", help="Check a website once and write the result in the data store"
+check_website = subparsers.add_parser(
+    "check_website", help="Check given single website once and write the result in the data store"
 )
-check_website_write.add_argument("url", **_url_kwargs())
-check_website_write.add_argument("--regex", **_regex_kwargs())
+check_website.add_argument("url", **_url_kwargs())
+check_website.add_argument("--regex", **_regex_kwargs())
 
 #
 
-check_once_all_websites_write = subparsers.add_parser(
-    "check_once_all_websites_write", help="Check all websites once and write the results in the data store"
+check_all_once = subparsers.add_parser(
+    "check_all_once", help="Check all websites once and write the results in the data store"
 )
 
 #
@@ -110,7 +113,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return args
 
 
-async def main() -> None:
+async def main(args: argparse.Namespace) -> None:
+    print(args)
+
+
+async def main_old() -> None:
     ctx = ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo())
 
     async with ctx:
@@ -148,11 +155,10 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    # ignore the first argument, which is the program name/path
-    parse_args(sys.argv[1:])
+    args = parse_args(sys.argv[1:])  # ignore the first argument, which is the program name/path
 
     try:
-        asyncio.run(main())
+        asyncio.run(main(args))
     except (KeyboardInterrupt, SystemExit):
         # ignore program-exit-like exceptions in the cli
         pass

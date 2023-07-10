@@ -6,7 +6,7 @@ from typing import Any
 
 from fastchecks import conf, util, vutil
 from fastchecks.runner import ChecksRunnerContext
-from fastchecks.types import CheckResult, WebsiteCheck, WebsiteCheckScheduled
+from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks import meta
 
 # ---------------------------------------------------------------------------
@@ -249,18 +249,6 @@ async def main(args: NamedArgs) -> None:
 
 
 # -----------------------------------------------------------------------------
-
-
-async def main_old() -> None:
-    ctx = ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo())
-
-    opr = "test"
-
-    async with ctx:
-        match opr:
-            case _:
-                raise ValueError(f"Unknown opr: {opr}")
-
 
 if __name__ == "__main__":
     # ignore the first argument, which is the program name/path

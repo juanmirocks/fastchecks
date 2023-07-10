@@ -72,7 +72,6 @@ def add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._
     command.add_argument("--interval", **_interval_kwargs())
 
     async def fun(x: NamedArgs):
-        print(x)
         await x.ctx.checks.upsert(
             # The args are already validated, but just in case
             WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)

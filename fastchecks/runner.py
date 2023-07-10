@@ -6,7 +6,7 @@ import aiohttp
 from apscheduler.schedulers.async_ import AsyncScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from fastchecks import conf, require, util
+from fastchecks import conf, require, util, vutil
 from fastchecks.check import check_website
 from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
 from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
@@ -56,6 +56,8 @@ class ChecksRunnerContext:
 
     @classmethod
     def init_with_postgres(cls, postgres_conninfo: str, **kwargs) -> "ChecksRunnerContext":
+        vutil.validated_postgres_conninfo(postgres_conninfo)
+
         return cls(
             session=aiohttp.ClientSession(),
             checks=WebsiteCheckSocketPostgres(postgres_conninfo),

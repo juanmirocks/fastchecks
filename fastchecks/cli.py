@@ -236,16 +236,12 @@ def parse_args(argv: list[str]) -> NamedArgs:
 
 
 async def main(args: NamedArgs) -> None:
-    # args must be validated
+    # args must and are assumed to be validated
 
     async with ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo()) as ctx:
         args.ctx = ctx
-        # TODO remove this debugging print
-        # print(args)
 
         await args.fun(args)
-
-        await asyncio.sleep(1)
 
 
 # -----------------------------------------------------------------------------

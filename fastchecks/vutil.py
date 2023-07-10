@@ -22,7 +22,7 @@ def validate_in_range(name: str, val: Number, min: Number, max: Number) -> Numbe
     return val
 
 
-def validate_url(url: str, raise_error: bool = True) -> str | None:
+def validate_url_get_netloc(url: str, raise_error: bool = True) -> str | None:
     """
     Validate that the given string is a valid URL.
     * If the URL is valid, return its netloc (e.g. "www.example.com").
@@ -49,16 +49,21 @@ def validate_url(url: str, raise_error: bool = True) -> str | None:
         return None
 
 
+def validate_url(url: str) -> str:
+    validate_url_get_netloc(url, raise_error=True)
+    return url
+
+
 def validate_postgres_conninfo(conninfo: str) -> str:
     prefix = "postgresql://"
     require(
-        conninfo.startswith(prefix) and validate_url(conninfo, raise_error=False),
+        conninfo.startswith(prefix) and validate_url_get_netloc(conninfo, raise_error=False),
         f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
     )
     return conninfo
 
 
-def validate_regex(regex: str, raise_error: bool = True) -> re2._Regexp | None:
+def validate_regex_get_pattern(regex: str, raise_error: bool = True) -> re2._Regexp | None:
     """
     Validate regex string: the regex must be compilable with google's re2 library.
 
@@ -74,3 +79,16 @@ def validate_regex(regex: str, raise_error: bool = True) -> re2._Regexp | None:
             )
         else:
             return None
+
+
+def validate_regex(regex: str) -> str:
+    validate_regex_get_pattern(regex, raise_error=True)
+    return regex
+
+
+def validate_regex_accepting_none(regex: str | None) -> str | None:
+    if regex is None:
+        return None
+    else:
+        validate_regex_get_pattern(regex, raise_error=True)
+        return regex

@@ -21,10 +21,7 @@ class WebsiteCheck(BaseModel):
 
         If the URL or regex are invalid, raise ValueError.
         """
-        vutil.validate_url(url)
-        if regex is not None:
-            vutil.validate_regex(regex)
-        return cls(url=url, regex=regex)
+        return cls(url=vutil.validate_url(url), regex=vutil.validate_regex_accepting_none(regex))
 
     @classmethod
     def without_validation(cls, url: str, regex: str | None = None) -> "WebsiteCheck":

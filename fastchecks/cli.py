@@ -18,7 +18,11 @@ def _url_kwargs(**kwargs) -> dict[str, Any]:
 
 
 def _regex_kwargs(**kwargs) -> dict[str, Any]:
-    return {"type": vutil.validate_regex, "help": "(Default: no check) The regex to match against the response body", **kwargs}
+    return {
+        "type": vutil.validate_regex,
+        "help": "(Default: no check) The regex to match against the response body",
+        **kwargs,
+    }
 
 
 def _interval_kwargs(**kwargs) -> dict[str, Any]:

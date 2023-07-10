@@ -15,6 +15,30 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
     def is_closed(self) -> bool:
         return self.__pool.closed
 
+    async def is_datastore_ready(self) -> bool:
+        async with self.__pool.connection() as aconn:
+            # We just test the WebsiteCheck for existence, because it is the first table to be created
+            # Note: not 100% reliable (as no other objects are tested) but good enough for now.
+            # MAYBE: support versioning of schemas with a hidden Version/Evolutions table or similar.
+            cur = await aconn.execute(
+                """
+                SELECT
+                FROM
+                    pg_tables
+                WHERE
+                    schemaname = 'public'
+                    AND tablename = 'WebsiteCheck';"""
+            )
+
+            return cur.rowcount == 1
+
+    async def init_datastore(self) -> bool:
+        already_inited = await self.is_datastore_ready()
+        if already_inited:
+            return False
+        else:
+            raise NotImplementedError("TODO: implement init_datastore")
+
     async def upsert(self, check: WebsiteCheckScheduled) -> None:
         async with self.__pool.connection() as aconn:
             await aconn.execute(

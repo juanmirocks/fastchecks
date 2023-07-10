@@ -3,7 +3,7 @@ import asyncio
 import sys
 from typing import Any
 
-from fastchecks import conf, require
+from fastchecks import conf
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks import meta

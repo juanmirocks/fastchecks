@@ -1,6 +1,5 @@
 import os
 from typing import Callable, TypeVar
-from fastchecks import require
 from fastchecks import vutil
 
 _CONVERSION_OUTPUT = TypeVar("_CONVERSION_OUTPUT")

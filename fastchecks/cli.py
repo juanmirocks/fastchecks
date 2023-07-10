@@ -79,8 +79,8 @@ def _add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
     cmd.add_argument("--regex", **_regex_kwargs())
     cmd.add_argument("--interval", **_interval_kwargs())
 
-    async def fun(x: NamedArgs):
-        await x.ctx.checks.upsert(
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        await ctx.checks.upsert(
             # The args are already validated, but just in case
             WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
         )
@@ -99,10 +99,10 @@ _add_upsert_check(SUBPARSERS)
 def _add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
 
-    async def fun(x: NamedArgs):
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
         # AFAIK, `enumerate`, nor `itertools` can handle an async iterator, so we enumerate manually
         c = 0
-        async for check in await x.ctx.checks.read_all():
+        async for check in await ctx.checks.read_all():
             c += 1
             print(f"{util.str_pad(c)}: {check}")
 
@@ -124,8 +124,8 @@ def _add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
     )
     cmd.add_argument("url", **_url_kwargs(help="The check's URL to delete"))
 
-    async def fun(x: NamedArgs):
-        print(await x.ctx.checks.delete(x.url))
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        print(await ctx.checks.delete(x.url))
 
     cmd.set_defaults(fun=fun)
 
@@ -147,8 +147,8 @@ def _add_delete_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argp
         "--confirm", help="For safety, you must activate this flag to delete all checks", action="store_true"
     )
 
-    async def fun(x: NamedArgs):
-        ret = await x.ctx.checks.delete_all(x.confirm)
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        ret = await ctx.checks.delete_all(x.confirm)
         print("done" if ret < 0 else ret)
 
     cmd.set_defaults(fun=fun)
@@ -170,8 +170,8 @@ def _add_check_website_only(subparsers: argparse._SubParsersAction) -> tuple[arg
     cmd.add_argument("url", **_url_kwargs())
     cmd.add_argument("--regex", **_regex_kwargs())
 
-    async def fun(x: NamedArgs):
-        result = await x.ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        result = await ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
         print(result)
 
     cmd.set_defaults(fun=fun)
@@ -192,9 +192,9 @@ def _add_check_website(subparsers: argparse._SubParsersAction) -> tuple[argparse
     cmd.add_argument("url", **_url_kwargs())
     cmd.add_argument("--regex", **_regex_kwargs())
 
-    async def fun(x: NamedArgs):
-        result = await x.ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
-        await x.ctx.results.write(result)
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        result = await ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
+        await ctx.results.write(result)
         print(result)
 
     cmd.set_defaults(fun=fun)
@@ -214,9 +214,9 @@ def _check_all_once(subparsers: argparse._SubParsersAction) -> tuple[argparse._S
         help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)",
     )
 
-    async def fun(x: NamedArgs):
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
         c = 0
-        async for check in x.ctx.check_all_once_n_write():
+        async for check in ctx.check_all_once_n_write():
             c += 1
             print(f"{util.str_pad(c)}: {check}")
 
@@ -237,8 +237,8 @@ def _check_all_loop_fg(subparsers: argparse._SubParsersAction) -> tuple[argparse
         help=f"Check all websites in the foreground at the scheduled intervals (or {conf.DEFAULT_CHECK_INTERVAL_SECONDS}s for checks without an interval)",
     )
 
-    async def fun(x: NamedArgs):
-        await x.ctx.run_checks_until_stopped_in_foreground()
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        await ctx.run_checks_until_stopped_in_foreground()
 
     cmd.set_defaults(fun=fun)
 
@@ -252,7 +252,7 @@ _check_all_loop_fg(SUBPARSERS)
 
 
 def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
-    _DEFAULT_READ_N_RESULTS = 100
+    _DEFAULT_READ_N_RESULTS = 10
 
     cmd = subparsers.add_parser("read_last_results", help="Read the last results from the data store")
     cmd.add_argument(
@@ -262,10 +262,10 @@ def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argp
         default=_DEFAULT_READ_N_RESULTS,
     )
 
-    async def fun(x: NamedArgs):
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
         print("(last results first)")
         c = 0
-        async for result in x.ctx.results.read_last_n(x.n):
+        async for result in ctx.results.read_last_n(x.n):
             c += 1
             print(f"{util.str_pad(c)}: {result}")
 
@@ -298,9 +298,7 @@ async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated
 
     async with ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo()) as ctx:
-        args.ctx = ctx
-
-        await args.fun(args)
+        await args.fun(ctx, args)
 
 
 # -----------------------------------------------------------------------------

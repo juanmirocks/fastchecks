@@ -22,9 +22,15 @@ PARSER = argparse.ArgumentParser(
 )
 PARSER.add_argument(
     "--pg_conninfo",
-    type=vutil.validated_postgres_conninfo,
+    type=vutil.validated_pg_conninfo,
     help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
     default=conf._POSTGRES_CONNINFO,
+)
+PARSER.add_argument(
+    "--pg_auto_init",
+    type=vutil.validated_parsed_bool_answer,
+    help="(Default: True) auto initialize the PostgreSQL database if the schema is not found",
+    default=True,
 )
 
 
@@ -300,7 +306,11 @@ def parse_str_args(argv: str) -> NamedArgs:
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated
 
-    async with ChecksRunnerContext.with_datastore_postgres(conf.get_postgres_conninfo()) as ctx:
+    print(args)
+
+    async with await ChecksRunnerContext.with_single_datastore_postgres(
+        pg_conninfo=args.pg_conninfo, auto_init=args.pg_auto_init
+    ) as ctx:
         await args.fun(ctx, args)
 
 

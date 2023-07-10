@@ -9,7 +9,12 @@ from apscheduler.triggers.interval import IntervalTrigger
 from fastchecks import conf, require, util, vutil
 from fastchecks.check import check_website
 from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
-from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
+from fastchecks.sockets.postgres import (
+    CheckResultSocketPostgres,
+    WebsiteCheckSocketPostgres,
+    common_single_pg_datastore_is_ready,
+    common_single_pg_datastore_init,
+)
 from fastchecks.types import CheckResult, WebsiteCheck, WebsiteCheckScheduled
 
 # -----------------------------------------------------------------------------
@@ -46,15 +51,33 @@ class ChecksRunnerContext:
     # -----------------------------------------------------------------------------
 
     @classmethod
-    def with_datastore_postgres(cls, postgres_conninfo: str, **kwargs) -> "ChecksRunnerContext":
-        vutil.validated_postgres_conninfo(postgres_conninfo)
+    async def with_single_datastore_postgres(cls, pg_conninfo: str, auto_init: bool, **kwargs) -> "ChecksRunnerContext":
+        vutil.validated_pg_conninfo(pg_conninfo)
 
-        return cls(
+        ctx = cls(
             session=aiohttp.ClientSession(),
-            checks=WebsiteCheckSocketPostgres(postgres_conninfo),
-            results=CheckResultSocketPostgres(postgres_conninfo),
+            checks=WebsiteCheckSocketPostgres(pg_conninfo),
+            results=CheckResultSocketPostgres(pg_conninfo),
             **kwargs,
         )
+
+        try:
+            # For instance, we use the socket's pool to check if the single common datastore is ready
+            is_ready = await common_single_pg_datastore_is_ready(ctx.checks._pool)
+            logging.warning(f"Postgres datastore is ready: {is_ready}")
+
+            if not is_ready:
+                require(
+                    auto_init,
+                    "The postgres database is not initialized and auto_init==False (set to True to auto-init, i.e., create the db schema)",
+                )
+                inited = await common_single_pg_datastore_init(ctx.checks._pool)
+                require(inited, "The postgres database could not be initialized")
+        except:
+            logging.critical("Could not initialize the postgres database", exc_info=True)
+            await ctx.close()
+
+        return ctx
 
     # -----------------------------------------------------------------------------
 

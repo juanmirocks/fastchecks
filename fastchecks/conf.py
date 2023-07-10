@@ -82,4 +82,4 @@ def get_postgres_conninfo() -> str:
     Return the Postgres conninfo envar value, or raise ValueError if the environment variable is not set or invalid.
     """
     ret = read_envar_value(_POSTGRES_CONNINFO_ENVAR_NAME, _POSTGRES_CONNINFO)
-    return vutil.validated_postgres_conninfo(ret)
+    return vutil.validated_pg_conninfo(ret)

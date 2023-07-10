@@ -9,20 +9,16 @@ from fastchecks.util import PRACTICAL_MAX_INT
 # Sockets / Data Stores
 
 
-class WebsiteCheckSocket(ABC):
-    @abstractmethod
-    def is_closed(self) -> bool:
-        ...
-
-    @abstractmethod
+class DataStoreSocket(ABC):
+    # @abstractmethod
     async def is_datastore_ready(self) -> bool:
         """
         Return True if the socket's underlying data storage is ready to be used.
         Return False if it is not ready (e.g., it has not been initialized)
         """
-        ...
+        raise NotImplementedError
 
-    @abstractmethod
+    # @abstractmethod
     async def init_datastore(self) -> bool:
         """
         Initialize the socket's underlying data storage.
@@ -30,6 +26,12 @@ class WebsiteCheckSocket(ABC):
         Return True if the data storage was initialized anew or False if it was already initialized or could not initialize it.
         An Exception might be raised if the initialization fails.
         """
+        raise NotImplementedError
+
+
+class WebsiteCheckSocket(DataStoreSocket):
+    @abstractmethod
+    def is_closed(self) -> bool:
         ...
 
     @abstractmethod

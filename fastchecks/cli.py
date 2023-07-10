@@ -88,15 +88,21 @@ add_upsert_check(subparsers)
 
 # -----------------------------------------------------------------------------
 
-read_all_checks = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
+
+def add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    command = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
+
+    async def fun(x: NamedArgs):
+        async for check in await x.ctx.checks.read_all():
+            print(check)
+
+    command.set_defaults(fun=fun)
+
+    return (subparsers, command)
 
 
-async def read_all_checks_fun(x: NamedArgs):
-    async for check in await x.ctx.checks.read_all():
-        print(check)
+add_read_all_checks(subparsers)
 
-
-read_all_checks.set_defaults(fun=read_all_checks_fun)
 
 # -----------------------------------------------------------------------------
 

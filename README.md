@@ -9,8 +9,7 @@
 # Features
 
 **✅ Feature-rich**
-* Written in Python (3.11 for maximum speed) 🐍
-* Website to check & its results are stored on postgres by default 🐘 (the code API is ready for other data stores / sockets).
+* Websites to check & their results are stored in postgres by default 🐘 (the library is ready for other data stores / sockets).
   * You can use postgres locally installed, running on docker, or with a DBaaS, e.g. Aiven.
 * Run stored all websites once, at configurable-scheduled intervals, or even with your system's cron.
 * CLI API (with `argparse`) & Python's.
@@ -22,6 +21,7 @@
   * aiohttp
   * psycopg (v3)
   * APScheduler (v4)
+* Written in [Python 3.11 for maximum speed](https://docs.python.org/3/whatsnew/3.11.html#summary-release-highlights) 🐍
 * Speedy regex checking thanks to [google-re2 regex](https://github.com/google/re2). Note that [google-re2 syntax](https://github.com/google/re2/wiki/Syntax) is very similar to python's native `re` but not equal. In particular, backreferences are not supported, to gain on speed and [safety](https://snyk.io/blog/redos-and-catastrophic-backtracking/).
 * Code is fully [type-annotated](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html).
 

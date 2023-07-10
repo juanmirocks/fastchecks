@@ -34,7 +34,13 @@ class WebsiteCheckSocket(ABC):
         return self.read_n(PRACTICAL_MAX_INT)
 
     @abstractmethod
-    async def delete(self, url: str) -> None:
+    async def delete(self, url: str) -> int:
+        """Return number of deleted checks, 0 (no actual deletion) or 1 (did delete)"""
+        ...
+
+    @abstractmethod
+    async def delete_all(self, confirm: bool) -> int:
+        """Return number of deleted checks. If the number is unknown, return a negative number like -1"""
         ...
 
     @abstractmethod

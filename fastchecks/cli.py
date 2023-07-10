@@ -117,7 +117,7 @@ def _add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
     cmd.add_argument("url", **_url_kwargs(help="The check's URL to delete"))
 
     async def fun(x: NamedArgs):
-        await x.ctx.checks.delete(x.url)
+        print(await x.ctx.checks.delete(x.url))
 
     cmd.set_defaults(fun=fun)
 
@@ -125,6 +125,28 @@ def _add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
 
 
 _add_delete_check(subparsers)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _add_delete_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "delete_all_checks",
+        help="Delete all checks from the data store (use with caution)",
+    )
+    cmd.add_argument("--confirm", help="For safety, you must activate this flag to delete all checks", action="store_true")
+
+    async def fun(x: NamedArgs):
+        ret = await x.ctx.checks.delete_all(x.confirm)
+        print("done" if ret <0 else ret)
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_delete_all_checks(subparsers)
 
 
 # -----------------------------------------------------------------------------

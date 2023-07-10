@@ -126,20 +126,52 @@ _add_delete_check(subparsers)
 
 # -----------------------------------------------------------------------------
 
-check_website_only = subparsers.add_parser(
-    "check_website_only",
-    help="Check given single website once (without writing to the data store)",
-)
-check_website_only.add_argument("url", **_url_kwargs())
-check_website_only.add_argument("--regex", **_regex_kwargs())
+
+def _add_check_website_only(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "check_website_only",
+        help="Check given single website once (without writing to the data store)",
+    )
+    cmd.add_argument("url", **_url_kwargs())
+    cmd.add_argument("--regex", **_regex_kwargs())
+
+    async def fun(x: NamedArgs):
+        result = await x.ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
+        print(result)
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_check_website_only(subparsers)
+
 
 # -----------------------------------------------------------------------------
 
-check_website = subparsers.add_parser(
+def _add_check_website(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
     "check_website", help="Check given single website once and write the result in the data store"
 )
-check_website.add_argument("url", **_url_kwargs())
-check_website.add_argument("--regex", **_regex_kwargs())
+    cmd.add_argument("url", **_url_kwargs())
+    cmd.add_argument("--regex", **_regex_kwargs())
+
+
+    async def fun(x: NamedArgs):
+        result = await x.ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
+        await x.ctx.results.write(result)
+        print(result)
+
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_check_website(subparsers)
+
+
+
 
 # -----------------------------------------------------------------------------
 
@@ -150,12 +182,27 @@ check_all_once = subparsers.add_parser(
 # -----------------------------------------------------------------------------
 
 
-_DEFAULT_READ_N_RESULTS = 100
+def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    _DEFAULT_READ_N_RESULTS = 100
 
-read_last_results = subparsers.add_parser("read_last_results", help="Read the last results from the data store")
-read_last_results.add_argument(
-    "n", type=vutil.validated_is_positive, help=f"(Default: {_DEFAULT_READ_N_RESULTS}) The number of results to read"
-)
+    cmd = subparsers.add_parser("read_last_results", help="Read the last results from the data store")
+    cmd.add_argument(
+        "-n",
+        type=vutil.validated_is_positive,
+        help=f"(Default: {_DEFAULT_READ_N_RESULTS}) The number of results to read",
+        default=_DEFAULT_READ_N_RESULTS
+    )
+
+    async def fun(x: NamedArgs):
+        async for result in x.ctx.results.read_last_n(x.n):
+            print(result)
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_read_last_results(subparsers)
 
 
 # -----------------------------------------------------------------------------
@@ -193,13 +240,6 @@ async def main_old() -> None:
 
     async with ctx:
         match opr:
-            case "check_website_only":
-                await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
-
-            case "check_website_and_write":
-                result = await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
-                await ctx.results.write(result)
-
             case "check_once_all_websites_and_write":
                 await ctx.check_once_all_websites_n_write()
 

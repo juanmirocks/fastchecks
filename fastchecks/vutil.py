@@ -15,7 +15,11 @@ import re2
 from fastchecks import meta, require
 
 
-def validated_is_positive(val: Number) -> Number:
+def validated_parsed_is_positive_int(val: str) -> int:
+    return validated_is_positive_int(int(val))
+
+
+def validated_is_positive_int(val: int) -> int:
     require(val > 0, f"Value must be positive: {val}")
     return val
 

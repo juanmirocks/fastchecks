@@ -188,9 +188,9 @@ def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argp
     cmd = subparsers.add_parser("read_last_results", help="Read the last results from the data store")
     cmd.add_argument(
         "-n",
-        type=vutil.validated_is_positive,
+        type=vutil.validated_parsed_is_positive_int,
         help=f"(Default: {_DEFAULT_READ_N_RESULTS}) The number of results to read",
-        default=_DEFAULT_READ_N_RESULTS
+        default=_DEFAULT_READ_N_RESULTS,
     )
 
     async def fun(x: NamedArgs):

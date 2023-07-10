@@ -4,6 +4,8 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/juanmirocks/fastchecks/badge.svg?branch=develop)](https://coveralls.io/github/juanmirocks/fastchecks?branch=develop)
 
+![Snyk](https://img.shields.io/badge/%20snyk_security_score-A-31C654?logo=snyk&logoColor=white)
+
 
 # Features
 

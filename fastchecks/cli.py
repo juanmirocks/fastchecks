@@ -3,7 +3,7 @@ import asyncio
 import sys
 from typing import Any
 
-from fastchecks import conf
+from fastchecks import conf, vutil
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks import meta
@@ -14,11 +14,11 @@ from fastchecks import meta
 
 
 def _url_kwargs(**kwargs) -> dict[str, Any]:
-    return {"type": str, "help": "The URL to check", **kwargs}
+    return {"type": vutil.validate_url, "help": "The URL to check", **kwargs}
 
 
 def _regex_kwargs(**kwargs) -> dict[str, Any]:
-    return {"type": str, "help": "(Default: no check) The regex to match against the response body", **kwargs}
+    return {"type": vutil.validate_regex, "help": "(Default: no check) The regex to match against the response body", **kwargs}
 
 
 def _interval_kwargs(**kwargs) -> dict[str, Any]:

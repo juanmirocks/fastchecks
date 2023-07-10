@@ -1,7 +1,7 @@
 import os
 from typing import Callable, TypeVar
-from fastchecks import require, meta
-
+from fastchecks import require
+from fastchecks import vutil
 
 _CONVERSION_OUTPUT = TypeVar("_CONVERSION_OUTPUT")
 
@@ -46,22 +46,14 @@ DEFAULT_CHECK_INTERVAL_SECONDS: int = get_typed_envar(
 
 
 def parse_interval(interval_seconds: str) -> int:
-    # If the interval is not a string, that exception will be caught later
     return validate_interval(int(interval_seconds))
 
 
-def validate_interval(interval_seconds: int) -> int:
-    """
-    Validate the given interval, and return it if it is valid, otherwise raise ValueError.
-    """
-    require(
-        MIN_INTERVAL_SECONDS <= interval_seconds <= MAX_INTERVAL_SECONDS,
-        f"Interval {interval_seconds} must be between min ({MIN_INTERVAL_SECONDS}) and max ({MAX_INTERVAL_SECONDS})",
-    )
-    return interval_seconds
+def validate_interval(interval_seconds: int, name: str = "interval") -> int:
+    return vutil.validate_in_range(name, interval_seconds, MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
 
 
-validate_interval(DEFAULT_CHECK_INTERVAL_SECONDS)
+validate_interval(DEFAULT_CHECK_INTERVAL_SECONDS, name="FC_DEFAULT_CHECK_INTERVAL_SECONDS")
 
 
 # -----------------------------------------------------------------------------
@@ -82,15 +74,7 @@ _POSTGRES_CONNINFO: str | None = os.environ.get(_POSTGRES_CONNINFO_ENVAR_NAME)
 
 def get_postgres_conninfo() -> str:
     """
-    Return the Postgres local connection string, or raise ValueError if the environment variable is not set.
+    Return the Postgres conninfo envar value, or raise ValueError if the environment variable is not set or invalid.
     """
-    return read_envar_value(_POSTGRES_CONNINFO_ENVAR_NAME, _POSTGRES_CONNINFO)
-
-
-def validate_postgres_conninfo(conninfo: str) -> str:
-    prefix = "postgresql://"
-    require(
-        conninfo.startswith(prefix),
-        f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
-    )
-    return conninfo
+    ret = read_envar_value(_POSTGRES_CONNINFO_ENVAR_NAME, _POSTGRES_CONNINFO)
+    return vutil.validate_postgres_conninfo(ret)

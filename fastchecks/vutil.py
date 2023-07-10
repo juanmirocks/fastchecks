@@ -3,6 +3,7 @@
 # - Further validation functions are defined conf module (which depend on configuration values).
 #
 # Conventions:
+# * Unless otherwise specified, validators must raise ValueError if the value is invalid.
 # * Functions that validate a value and (if valid) return it, are prefixed with "validated_".
 # * Functions that validate a value and (if valid) return an optionally computed value, are prefixed with "validate_".
 #

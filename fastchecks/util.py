@@ -1,5 +1,4 @@
 import datetime
-import re
 from typing import AsyncIterator, TypeVar
 from urllib.parse import urlparse, urlunparse
 import sys
@@ -24,29 +23,14 @@ https://stackoverflow.com/a/1406210/341320
 """
 
 
-def validate_url(url: str, raise_error: bool = True) -> str | None:
-    """
-    Validate given string is a valid URL.
+def str_pad(c: int, size: int = 3) -> str:
+    return str(c).zfill(size)
 
-    If the URL is valid, return its netloc (e.g. "www.example.com").
-    Else if raise_error is True, raise ValueError.
-    """
-    # See: https://snyk.io/blog/secure-python-url-validation/
 
-    ret: str | None
-    try:
-        result = urlparse(url)
-        ret = result.scheme and result.netloc
-    except:
-        ret = None
-
-    if ret:
-        return ret
-    elif raise_error:
-        raise ValueError(f"Invalid URL: {url}")
-    else:
-        # ret could have been (without exception) the empty string (which is also falsy), but we return None to avoid confusions
-        return None
+def shorten_str(x: str, max=100) -> str:
+    if len(x) > max:
+        x = x[:max] + "..."
+    return x
 
 
 def replace_url_last_segment(url: str, new_segment: str) -> str:
@@ -66,22 +50,6 @@ def replace_url_last_segment(url: str, new_segment: str) -> str:
     )
 
     return modified_url
-
-
-def validate_regex(regex: str, raise_error: bool = True) -> re.Pattern | None:
-    """
-    Validate regex string: the regex must be compilable.
-
-    If the regex is valid, return its re.Pattern.
-    Else if raise_error is True, raise ValueError.
-    """
-    try:
-        return re.compile(regex)
-    except re.error:
-        if raise_error:
-            raise ValueError(f"Invalid regex (cannot compile it): {regex}")
-        else:
-            return None
 
 
 def get_utcnow() -> datetime.datetime:

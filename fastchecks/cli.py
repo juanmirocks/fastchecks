@@ -1,62 +1,314 @@
+import argparse
+from argparse import Namespace as NamedArgs
 import asyncio
 import sys
-from fastchecks import conf, require
+from typing import Any
+
+from fastchecks import conf, util, vutil
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
+from fastchecks import meta
+
+# ---------------------------------------------------------------------------
+
+#
+# Main parser
+#
+
+PARSER = argparse.ArgumentParser(
+    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
+)
+PARSER.add_argument(
+    "--pg_conninfo",
+    type=vutil.validated_postgres_conninfo,
+    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
+    default=conf._POSTGRES_CONNINFO,
+)
 
 
-class __ResultsParams:
-    READ_MAX_RESULTS = 100
-    # To pattern match a variable's value (below), we need to use a class/enum; see: https://peps.python.org/pep-0636/#matching-against-constants-and-enums
-    READ_MAX_RESULTS_OPR = f"read_last_{READ_MAX_RESULTS}_results"
+# -----------------------------------------------------------------------------
+
+#
+# Common command arguments
+#
 
 
-async def main() -> None:
-    require(len(sys.argv) in (3, 4), "Usage: python -m fastchecks.cli <opr> <url> [regex]")
+def _url_kwargs(**kwargs) -> dict[str, Any]:
+    return {"type": vutil.validated_web_url, "help": "The URL to check", **kwargs}
 
-    opr = sys.argv[1]
-    url = sys.argv[2]
-    regex_str_opt = sys.argv[3] if len(sys.argv) == 4 else None
 
-    ctx = ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo())
+def _regex_kwargs(**kwargs) -> dict[str, Any]:
+    return {
+        "type": vutil.validated_regex,
+        "help": "(Default: no check) The regex to match against the response body",
+        **kwargs,
+    }
 
-    async with ctx:
-        match opr:
-            case "upsert_check":
-                await ctx.checks.upsert(
-                    WebsiteCheckScheduled.with_check(
-                        WebsiteCheck.with_validation(url, regex_str_opt), interval_seconds=None
-                    )
-                )
 
-            case "read_all_checks":
-                await ctx.checks.read_all()
+def _interval_kwargs(**kwargs) -> dict[str, Any]:
+    return {
+        "type": conf.validated_parsed_interval,
+        "help": f"(Default: {conf.DEFAULT_CHECK_INTERVAL_SECONDS}) The interval in _seconds_ for a check when it is scheduled to be run periodically (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS})",
+        **kwargs,
+    }
 
-            case "delete_check":
-                await ctx.checks.delete(url)
 
-            ###
+# -----------------------------------------------------------------------------
 
-            case "check_website_only":
-                await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
+#
+# Following subparsers (commands)
+#
 
-            case "check_website_and_write":
-                result = await ctx.check_only(WebsiteCheck.with_validation(url, regex_str_opt))
-                await ctx.results.write(result)
+SUBPARSERS = PARSER.add_subparsers(
+    title="Commands",
+    dest="command",
+    description=" ",
+    help="Info:",
+)
 
-            case "check_once_all_websites_and_write":
-                await ctx.check_once_all_websites_n_write()
+# -----------------------------------------------------------------------------
 
-            case __ResultsParams.READ_MAX_RESULTS_OPR:
-                await ctx.results.read_last_n(__ResultsParams.READ_MAX_RESULTS)
 
-            case _:
-                raise ValueError(f"Unknown opr: {opr}")
+def _add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "upsert_check",
+        help="Write a new check to the data store, or update an existing check (uniquely identified by its URL)",
+    )
 
+    cmd.add_argument("url", **_url_kwargs())
+    cmd.add_argument("--regex", **_regex_kwargs())
+    cmd.add_argument("--interval", **_interval_kwargs())
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        await ctx.checks.upsert(
+            # The args are already validated, but just in case
+            WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
+        )
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_upsert_check(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        # AFAIK, `enumerate`, nor `itertools` can handle an async iterator, so we enumerate manually
+        c = 0
+        async for check in await ctx.checks.read_all():
+            c += 1
+            print(f"{util.str_pad(c)}: {check}")
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_read_all_checks(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "delete_check",
+        help="Delete a check from the data store",
+    )
+    cmd.add_argument("url", **_url_kwargs(help="The check's URL to delete"))
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        print(await ctx.checks.delete(x.url))
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_delete_check(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _add_delete_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "delete_all_checks",
+        help="Delete all checks from the data store (use with caution)",
+    )
+    cmd.add_argument(
+        "--confirm", help="For safety, you must activate this flag to delete all checks", action="store_true"
+    )
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        ret = await ctx.checks.delete_all(x.confirm)
+        print("done" if ret < 0 else ret)
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_delete_all_checks(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _add_check_website_only(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "check_website_only",
+        help="Check given single website once (without writing to the data store)",
+    )
+    cmd.add_argument("url", **_url_kwargs())
+    cmd.add_argument("--regex", **_regex_kwargs())
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        result = await ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
+        print(result)
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_check_website_only(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _add_check_website(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "check_website", help="Check given single website once and write the result in the data store"
+    )
+    cmd.add_argument("url", **_url_kwargs())
+    cmd.add_argument("--regex", **_regex_kwargs())
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        result = await ctx.check_only(WebsiteCheck.with_validation(x.url, x.regex))
+        await ctx.results.write(result)
+        print(result)
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_check_website(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _check_all_once(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "check_all_once",
+        help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)",
+    )
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        c = 0
+        async for check in ctx.check_all_once_n_write():
+            c += 1
+            print(f"{util.str_pad(c)}: {check}")
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_check_all_once(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _check_all_loop_fg(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    cmd = subparsers.add_parser(
+        "check_all_loop_fg",
+        help=f"Check all websites in the foreground at the scheduled intervals (or {conf.DEFAULT_CHECK_INTERVAL_SECONDS}s for checks without an interval)",
+    )
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        await ctx.run_checks_until_stopped_in_foreground()
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_check_all_loop_fg(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def _add_read_last_results(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+    _DEFAULT_READ_N_RESULTS = 10
+
+    cmd = subparsers.add_parser("read_last_results", help="Read the last results from the data store")
+    cmd.add_argument(
+        "-n",
+        type=vutil.validated_parsed_is_positive_int,
+        help=f"(Default: {_DEFAULT_READ_N_RESULTS}) The number of results to read",
+        default=_DEFAULT_READ_N_RESULTS,
+    )
+
+    async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
+        print("(last results first)")
+        c = 0
+        async for result in ctx.results.read_last_n(x.n):
+            c += 1
+            print(f"{util.str_pad(c)}: {result}")
+
+    cmd.set_defaults(fun=fun)
+
+    return (subparsers, cmd)
+
+
+_add_read_last_results(SUBPARSERS)
+
+
+# -----------------------------------------------------------------------------
+
+
+def parse_args(argv: list[str]) -> NamedArgs:
+    args = PARSER.parse_args(argv)
+
+    if args.command is None:
+        print("Error: you must specify a command")
+        sys.exit(2)
+
+    return args
+
+
+def parse_str_args(argv: str) -> NamedArgs:
+    return parse_args(argv.split())
+
+
+async def main(args: NamedArgs) -> None:
+    # args must and are assumed to be validated
+
+    async with ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo()) as ctx:
+        await args.fun(ctx, args)
+
+
+# -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    # ignore the first argument, which is the program name/path
+    args = parse_args(sys.argv[1:])
+
     try:
-        asyncio.run(main())
+        asyncio.run(main(args))
     except (KeyboardInterrupt, SystemExit):
         # ignore program-exit-like exceptions in the cli
         pass

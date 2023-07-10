@@ -1,7 +1,6 @@
 import os
 from typing import Callable, TypeVar
-from fastchecks import require
-
+from fastchecks import vutil
 
 _CONVERSION_OUTPUT = TypeVar("_CONVERSION_OUTPUT")
 
@@ -40,23 +39,26 @@ MIN_INTERVAL_SECONDS: int = get_typed_envar("FC_MIN_INTERVAL_SECONDS", default=5
 
 MAX_INTERVAL_SECONDS: int = get_typed_envar("FC_MAX_INTERVAL_SECONDS", default=300, conversion=lambda x: int(x))
 
-DEFAULT_CHECK_INTERVAL_SECONDS: int = get_typed_envar(
-    "FC_DEFAULT_CHECK_INTERVAL_SECONDS", default=180, conversion=lambda x: int(x)
+
+def validated_parsed_interval(interval_seconds: str) -> int:
+    return validated_interval(int(interval_seconds))
+
+
+def validated_interval(interval_seconds: int, name: str = "interval") -> int:
+    return vutil.validated_in_range(name, interval_seconds, MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
+
+
+def validated_interval_accepting_none(interval_seconds: int | None, name: str = "interval") -> int | None:
+    if interval_seconds is None:
+        return None
+    else:
+        return vutil.validated_in_range(name, interval_seconds, MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
+
+
+DEFAULT_CHECK_INTERVAL_SECONDS: int = validated_interval(
+    get_typed_envar("FC_DEFAULT_CHECK_INTERVAL_SECONDS", default=180, conversion=lambda x: int(x)),
+    name="FC_DEFAULT_CHECK_INTERVAL_SECONDS",
 )
-
-
-def validate_interval(interval_seconds: int) -> int:
-    """
-    Validate the given interval, and return it if it is valid, otherwise raise ValueError.
-    """
-    require(
-        MIN_INTERVAL_SECONDS <= interval_seconds <= MAX_INTERVAL_SECONDS,
-        f"Interval {interval_seconds} must be between min ({MIN_INTERVAL_SECONDS}) and max ({MAX_INTERVAL_SECONDS})",
-    )
-    return interval_seconds
-
-
-validate_interval(DEFAULT_CHECK_INTERVAL_SECONDS)
 
 
 # -----------------------------------------------------------------------------
@@ -70,11 +72,14 @@ For reference, the size of https://python.org is, as of 2023-07-06, 49943 bytes.
 
 # -----------------------------------------------------------------------------
 
-_POSTGRES_CONNINFO: str | None = os.environ.get("FC_POSTGRES_CONNINFO")
+_POSTGRES_CONNINFO_ENVAR_NAME = "FC_POSTGRES_CONNINFO"
+
+_POSTGRES_CONNINFO: str | None = os.environ.get(_POSTGRES_CONNINFO_ENVAR_NAME)
 
 
 def get_postgres_conninfo() -> str:
     """
-    Return the Postgres local connection string, or raise ValueError if the environment variable is not set.
+    Return the Postgres conninfo envar value, or raise ValueError if the environment variable is not set or invalid.
     """
-    return read_envar_value("_POSTGRES_CONNINFO", _POSTGRES_CONNINFO)
+    ret = read_envar_value(_POSTGRES_CONNINFO_ENVAR_NAME, _POSTGRES_CONNINFO)
+    return vutil.validated_postgres_conninfo(ret)

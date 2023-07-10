@@ -6,7 +6,7 @@ import aiohttp
 from apscheduler.schedulers.async_ import AsyncScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from fastchecks import conf, require, util
+from fastchecks import conf, require, util, vutil
 from fastchecks.check import check_website
 from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
 from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
@@ -39,9 +39,24 @@ class ChecksRunnerContext:
         self.default_interval_seconds = (
             conf.DEFAULT_CHECK_INTERVAL_SECONDS
             if default_interval_seconds is None
-            else conf.validate_interval(default_interval_seconds)
+            else conf.validated_interval(default_interval_seconds)
         )
         """Default interval for website checks that don't specify it"""
+
+    # -----------------------------------------------------------------------------
+
+    @classmethod
+    def init_with_postgres(cls, postgres_conninfo: str, **kwargs) -> "ChecksRunnerContext":
+        vutil.validated_postgres_conninfo(postgres_conninfo)
+
+        return cls(
+            session=aiohttp.ClientSession(),
+            checks=WebsiteCheckSocketPostgres(postgres_conninfo),
+            results=CheckResultSocketPostgres(postgres_conninfo),
+            **kwargs,
+        )
+
+    # -----------------------------------------------------------------------------
 
     async def __aenter__(self) -> "ChecksRunnerContext":
         return self
@@ -54,14 +69,8 @@ class ChecksRunnerContext:
 
     # -----------------------------------------------------------------------------
 
-    @classmethod
-    def init_with_postgres(cls, postgres_conninfo: str, **kwargs) -> "ChecksRunnerContext":
-        return cls(
-            session=aiohttp.ClientSession(),
-            checks=WebsiteCheckSocketPostgres(postgres_conninfo),
-            results=CheckResultSocketPostgres(postgres_conninfo),
-            **kwargs,
-        )
+    def get_interval_seconds(self, check: WebsiteCheckScheduled) -> int:
+        return self.default_interval_seconds if check.interval_seconds is None else check.interval_seconds
 
     # -----------------------------------------------------------------------------
 
@@ -77,7 +86,7 @@ class ChecksRunnerContext:
         await self.results.write(ret)
         return ret
 
-    async def check_once_all_websites_n_write(self) -> AsyncIterator[CheckResult]:
+    async def check_all_once_n_write(self) -> AsyncIterator[CheckResult]:
         async for check in self.checks.read_n(util.PRACTICAL_MAX_INT):
             result = await self.check_only(check)
             await self.results.write(result)
@@ -85,16 +94,13 @@ class ChecksRunnerContext:
 
     # -----------------------------------------------------------------------------
 
-    def _get_interval_seconds(self, check: WebsiteCheckScheduled) -> int:
-        return self.default_interval_seconds if check.interval_seconds is None else check.interval_seconds
-
     async def _add_check_to_scheduler(self, scheduler: AsyncScheduler, check: WebsiteCheckScheduled) -> AsyncScheduler:
         fun = self.check_n_write
 
         # Note: we can later retrieve scheduled checks by their url (with `AsyncScheduler.get_schedule``)
         # MAYBE (2023-07-09; future idea): tag the check with the url's domain, so later we can filter on them
         await scheduler.add_schedule(
-            fun, trigger=IntervalTrigger(seconds=self._get_interval_seconds(check)), id=check.url, args=[check]
+            fun, trigger=IntervalTrigger(seconds=self.get_interval_seconds(check)), id=check.url, args=[check]
         )
 
         return scheduler
@@ -116,12 +122,15 @@ class ChecksRunnerContext:
         """
         try:
             async with AsyncScheduler() as scheduler:
+                default_interval_msg = f" -- with default interval: {self.default_interval_seconds}s"
+
                 async for check in await self.checks.read_all():
-                    logging.info(f"Adding check to scheduler: {check}")
                     await self._add_check_to_scheduler(scheduler, check)
+                    print(f"Adding check to scheduler: {check}{'' if check.interval_seconds else default_interval_msg}")
 
                 require(len(await scheduler.get_schedules()) != 0, "No checks to run. Add some checks first.")
 
+                print("\nRunning until stopped...")
                 await scheduler.run_until_stopped()
 
         except (KeyboardInterrupt, SystemExit):

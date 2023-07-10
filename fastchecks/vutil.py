@@ -67,10 +67,14 @@ def validated_url(url: str) -> str:
     return url
 
 
+def starts_with_valid_pg_conninfo_protocol(conninfo: str) -> bool:
+    """Return True iff the given conninfo starts with a valid URL Postgres protocol, else False"""
+    return conninfo.startswith("postgresql://") or conninfo.startswith("postgres://")
+
+
 def validated_postgres_conninfo(conninfo: str) -> str:
-    prefix = "postgresql://"
     require(
-        conninfo.startswith(prefix) and bool(validate_url(conninfo, raise_error=False)),
+        starts_with_valid_pg_conninfo_protocol(conninfo) and bool(validate_url(conninfo, raise_error=False)),
         f"The Postgres conninfo must be of URL form and start with 'postgresql://' (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",
     )
     return conninfo

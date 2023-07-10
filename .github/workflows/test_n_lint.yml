@@ -44,3 +44,9 @@ jobs:
       - name: Lint with multiple tasks, including security checks
         run: |
           poetry run poe lint_all
+
+      - name: Run Snyk to check for vulnerabilities
+      - uses: actions/checkout@master
+        uses: snyk/actions/python-3.10@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

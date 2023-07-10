@@ -45,10 +45,9 @@ class WebsiteCheckScheduled(WebsiteCheck):
 
     @classmethod
     def with_check(cls, check: WebsiteCheck, interval_seconds: int | None) -> "WebsiteCheckScheduled":
-        if interval_seconds is not None:
-            conf.validate_interval(interval_seconds)
-
-        return cls(url=check.url, regex=check.regex, interval_seconds=interval_seconds)
+        return cls(
+            url=check.url, regex=check.regex, interval_seconds=conf.validated_interval_accepting_none(interval_seconds)
+        )
 
 
 class CheckResult(BaseModel):

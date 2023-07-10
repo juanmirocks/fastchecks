@@ -21,6 +21,6 @@
 🧘 **Safety**
 * Binary or too big responses will not be read.
 * Safe regex thanks to [google-re2 regex](https://github.com/google/re2).
-* Security static analysis with [bandit](https://github.com/PyCQA/bandit) and [snyk](https://snyk.io).
+* Security static analysis with [bandit](https://github.com/PyCQA/bandit), [snyk](https://snyk.io), and [GitHub CodeQL](https://codeql.github.com/).
 * Further static analysis with mypy & pyflakes.
 * Safe escaping of SQL queries with [psycopg](https://www.psycopg.org/psycopg3/docs/advanced/typing.html#checking-literal-strings-in-queries).

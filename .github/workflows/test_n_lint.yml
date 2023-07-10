@@ -6,7 +6,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test_n_lint:
 
     runs-on: [ubuntu-latest]
     strategy:
@@ -44,3 +44,8 @@ jobs:
       - name: Lint with multiple tasks, including security checks
         run: |
           poetry run poe lint_all
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python-3.10@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

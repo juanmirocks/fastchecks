@@ -10,13 +10,6 @@ from fastchecks import meta
 
 # -----------------------------------------------------------------------------
 
-parser = argparse.ArgumentParser(
-    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
-)
-subparsers = parser.add_subparsers(title="Commands")
-
-# -----------------------------------------------------------------------------
-
 # Common arguments
 
 
@@ -30,11 +23,21 @@ def _regex_kwargs(**kwargs) -> dict[str, Any]:
 
 def _interval_kwargs(**kwargs) -> dict[str, Any]:
     return {
-        "type": int,
+        "type": conf.parse_interval,
         "help": f"(Default: {conf.DEFAULT_CHECK_INTERVAL_SECONDS}) The interval in _seconds_ for a check when it is scheduled to be run periodically (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS})",
         **kwargs,
     }
 
+
+parser = argparse.ArgumentParser(
+    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
+)
+parser.add_argument(
+    "--conninfo",
+    type=conf.validate_postgres_conninfo,
+    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
+)
+subparsers = parser.add_subparsers(title="Commands")
 
 # -----------------------------------------------------------------------------
 

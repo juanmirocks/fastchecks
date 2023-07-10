@@ -61,7 +61,7 @@ def _interval_kwargs(**kwargs) -> dict[str, Any]:
 # -----------------------------------------------------------------------------
 
 
-def add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+def _add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
         "upsert_check",
         help="Write a new check to the data store, or update an existing check (uniquely identified by its URL)",
@@ -82,13 +82,13 @@ def add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._
     return (subparsers, cmd)
 
 
-add_upsert_check(subparsers)
+_add_upsert_check(subparsers)
 
 
 # -----------------------------------------------------------------------------
 
 
-def add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+def _add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
 
     async def fun(x: NamedArgs):
@@ -100,13 +100,13 @@ def add_read_all_checks(subparsers: argparse._SubParsersAction) -> tuple[argpars
     return (subparsers, cmd)
 
 
-add_read_all_checks(subparsers)
+_add_read_all_checks(subparsers)
 
 
 # -----------------------------------------------------------------------------
 
 
-def add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
+def _add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
         "delete_check",
         help="Delete a check from the data store",
@@ -121,7 +121,7 @@ def add_delete_check(subparsers: argparse._SubParsersAction) -> tuple[argparse._
     return (subparsers, cmd)
 
 
-add_delete_check(subparsers)
+_add_delete_check(subparsers)
 
 
 # -----------------------------------------------------------------------------

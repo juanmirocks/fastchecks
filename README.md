@@ -1,10 +1,8 @@
 # 🚥 Website monitoring backend service - in Python 🐍 - check results written into PostgreSQL 🐘
 
 [![test & lint](https://github.com/juanmirocks/fastchecks/actions/workflows/test_n_lint.yml/badge.svg)](https://github.com/juanmirocks/fastchecks/actions/workflows/test_n_lint.yml)
-
 [![Coverage Status](https://coveralls.io/repos/github/juanmirocks/fastchecks/badge.svg?branch=develop)](https://coveralls.io/github/juanmirocks/fastchecks?branch=develop)
-
-[![Snyk](https://img.shields.io/badge/%20snyk_security_score-A-31C654?logo=snyk&logoColor=white)](https://github.com/juanmirocks/fastchecks/actions)
+[![Snyk](https://img.shields.io/badge/%20Snyk_security-monitored-8742B8?logo=snyk&logoColor=white)](https://github.com/juanmirocks/fastchecks/actions)
 
 
 # Features

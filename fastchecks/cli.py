@@ -8,6 +8,19 @@ from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks import meta
 
+# ---------------------------------------------------------------------------
+
+parser = argparse.ArgumentParser(
+    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
+)
+parser.add_argument(
+    "--conninfo",
+    type=vutil.validated_postgres_conninfo,
+    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
+    default=conf._POSTGRES_CONNINFO,
+)
+subparsers = parser.add_subparsers(title="Commands")
+
 # -----------------------------------------------------------------------------
 
 # Common arguments
@@ -32,16 +45,6 @@ def _interval_kwargs(**kwargs) -> dict[str, Any]:
         **kwargs,
     }
 
-
-parser = argparse.ArgumentParser(
-    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
-)
-parser.add_argument(
-    "--conninfo",
-    type=conf.validate_postgres_conninfo,
-    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
-)
-subparsers = parser.add_subparsers(title="Commands")
 
 # -----------------------------------------------------------------------------
 

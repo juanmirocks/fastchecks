@@ -12,7 +12,7 @@
 * Websites to check & their results are stored in postgres by default 🐘 (the library is ready for other data stores / sockets).
   * You can use postgres locally installed, running on docker, or with a DBaaS, e.g. Aiven.
 * Run stored all websites once, at configurable-scheduled intervals, or even with your system's cron.
-* CLI API (with `argparse`) & Python's.
+* CLI API (with `argparse`) & Python's (Python >= 3.11).
 * ...and more!
 
 

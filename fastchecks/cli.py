@@ -1,4 +1,5 @@
 import argparse
+from argparse import Namespace as NamedArgs
 import asyncio
 import sys
 from typing import Any
@@ -19,11 +20,12 @@ parser.add_argument(
     help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
     default=conf._POSTGRES_CONNINFO,
 )
-subparsers = parser.add_subparsers(title="Commands",
-                                   dest="command",
-                                   description=" ",
-                                   help="Info:",
-                                   )
+subparsers = parser.add_subparsers(
+    title="Commands",
+    dest="command",
+    description=" ",
+    help="Info:",
+)
 
 # -----------------------------------------------------------------------------
 
@@ -56,6 +58,18 @@ upsert_check = subparsers.add_parser(
     "upsert_check",
     help="Write a new check to the data store, or update an existing check (uniquely identified by its URL)",
 )
+
+
+async def upsert_check_fun(x: NamedArgs):
+    await x.ctx.checks.upsert(
+        # The args are already validated, but just in case
+        WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
+    )
+
+
+upsert_check.set_defaults(fun=upsert_check_fun)
+
+
 upsert_check.add_argument("url", **_url_kwargs())
 upsert_check.add_argument("--regex", **_regex_kwargs())
 upsert_check.add_argument("--interval", **_interval_kwargs())
@@ -63,6 +77,14 @@ upsert_check.add_argument("--interval", **_interval_kwargs())
 #
 
 read_all_checks = subparsers.add_parser("read_all_checks", help="Retrieve and print all checks from the data store")
+
+
+async def read_all_checks_fun(x: NamedArgs):
+    async for check in await x.ctx.checks.read_all():
+        print(check)
+
+
+read_all_checks.set_defaults(fun=read_all_checks_fun)
 
 #
 
@@ -109,17 +131,32 @@ read_last_results.add_argument(
 # -----------------------------------------------------------------------------
 
 
-def parse_args(argv: list[str]) -> argparse.Namespace:
+def parse_str_args(argv: str) -> NamedArgs:
+    return parse_args(argv.split())
+
+
+def parse_args(argv: list[str]) -> NamedArgs:
     args = parser.parse_args(argv)
     return args
 
 
-async def main(args: argparse.Namespace) -> None:
-    print(args)
+async def main(args: NamedArgs) -> None:
+    # args must be validated
+
+    async with ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo()) as ctx:
+        args.ctx = ctx
+        # TODO remove this debugging print
+        # print(args)
+
+        await args.fun(args)
+
+        await asyncio.sleep(1)
 
 
 async def main_old() -> None:
     ctx = ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo())
+
+    opr = "test"
 
     async with ctx:
         match opr:
@@ -148,15 +185,13 @@ async def main_old() -> None:
             case "check_once_all_websites_and_write":
                 await ctx.check_once_all_websites_n_write()
 
-            case __ResultsParams.READ_MAX_RESULTS_OPR:
-                await ctx.results.read_last_n(__ResultsParams.READ_MAX_RESULTS)
-
             case _:
                 raise ValueError(f"Unknown opr: {opr}")
 
 
 if __name__ == "__main__":
-    args = parse_args(sys.argv[1:])  # ignore the first argument, which is the program name/path
+    # ignore the first argument, which is the program name/path
+    args = parse_args(sys.argv[1:])
 
     try:
         asyncio.run(main(args))

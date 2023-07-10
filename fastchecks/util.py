@@ -1,5 +1,5 @@
 import datetime
-import re
+import re2
 from typing import AsyncIterator, TypeVar
 from urllib.parse import urlparse, urlunparse
 import sys
@@ -68,7 +68,7 @@ def replace_url_last_segment(url: str, new_segment: str) -> str:
     return modified_url
 
 
-def validate_regex(regex: str, raise_error: bool = True) -> re.Pattern | None:
+def validate_regex(regex: str, raise_error: bool = True) -> re2._Regexp | None:
     """
     Validate regex string: the regex must be compilable.
 
@@ -76,8 +76,8 @@ def validate_regex(regex: str, raise_error: bool = True) -> re.Pattern | None:
     Else if raise_error is True, raise ValueError.
     """
     try:
-        return re.compile(regex)
-    except re.error:
+        return re2.compile(regex)
+    except re2.error:
         if raise_error:
             raise ValueError(f"Invalid regex (cannot compile it): {regex}")
         else:

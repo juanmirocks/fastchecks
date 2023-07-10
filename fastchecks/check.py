@@ -1,5 +1,5 @@
 import logging
-import re
+import re2
 import aiohttp
 
 from fastchecks import conf
@@ -112,7 +112,7 @@ async def search_pattern_whole_text_body(regex: str, response: aiohttp.ClientRes
         response, length=conf.TOO_BIG_CONTENT_LENGTH_KB, allow_none_content_length=True
     ):
         content = await response.text()
-        match_opt = re.search(regex, content)
+        match_opt = re2.search(regex, content)
 
         if match_opt:
             return match_opt[0]

@@ -6,7 +6,7 @@ import pytest
 import pytest_asyncio
 from psycopg import sql
 
-from fastchecks import conf
+from fastchecks import conf, cli
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks.util import PRACTICAL_MAX_INT, async_itr_to_list
@@ -105,12 +105,18 @@ async def test_simple_checks_workflow(setup_module):
     # 01: We insert 1 check
     #     We expect to read back 1 check
     #
-    await CTX.checks.upsert(
-        WebsiteCheckScheduled.with_check(
-            WebsiteCheck.with_validation(url="https://python.org", regex="Python .* lets you work quickly"),
-            interval_seconds=2,
-        )
-    )
+
+    # Run via CLI :-)
+    await cli.run_seq(["--pg_conninfo", TEST_CONNINFO, "upsert_check", "https://python.org", "--regex", "Python .* lets you work quickly", "--interval", "2"])
+
+    # (Alternative) Run programmatically
+    # await CTX.checks.upsert(
+    #     WebsiteCheckScheduled.with_check(
+    #         WebsiteCheck.with_validation(url="https://python.org", regex="Python .* lets you work quickly"),
+    #         interval_seconds=2,
+    #     )
+    # )
+
     #
     checks01 = await async_itr_to_list(await CTX.checks.read_all())
     assert len(checks01) == 1, f"{checks01} - {type(checks01)}"

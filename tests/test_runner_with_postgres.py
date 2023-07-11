@@ -19,6 +19,8 @@ CTX: ChecksRunnerContext
 # Allow minimum of 1 interval second for tests for speed
 conf.MIN_INTERVAL_SECONDS = 1
 
+DEFAULT_INTERVAL_SECONDS = 1
+
 
 # See trick for pytest async: https://stackoverflow.com/a/56238383/341320
 @pytest.fixture(scope="module")
@@ -49,7 +51,7 @@ async def setup_module():
         print(conn.execute(query_safe).statusmessage)
 
     CTX = await ChecksRunnerContext.with_single_datastore_postgres(
-        TEST_CONNINFO, default_interval_seconds=1, auto_init=True, timeout_init_sec=5
+        TEST_CONNINFO, default_interval_seconds=DEFAULT_INTERVAL_SECONDS, auto_init=True, timeout_init_sec=5
     )
 
     yield "initialized"
@@ -88,7 +90,7 @@ WIP_TEST_STRING: str | None = None
 
 @pytest.mark.asyncio
 async def test_simple_checks_workflow(setup_module):
-    global CTX
+    global TEST_CONNINFO, CTX
 
     #
     # 00: The DB MUST be empty at the beginning
@@ -111,7 +113,7 @@ async def test_simple_checks_workflow(setup_module):
         [
             "--pg_conninfo",
             TEST_CONNINFO,
-            "--log_console_level",
+            "--log_console_level",  # use this option just to increase tested line coverage
             "DEBUG",
             "upsert_check",
             "https://python.org",
@@ -193,12 +195,26 @@ async def test_simple_checks_workflow(setup_module):
     assert len(results04_example_org) == 2, f"{results04_example_org}"
 
     #
-    # 05: Run scheduled checks in the background for some then seconds, then stop
+    # 05: Run scheduled checks in the background for some seconds, then stop
     #     We expect to see more results, specifically more "https://example.org" results since its interval is lower despite starting with an advantage
     #
-    async with asyncio.timeout(delay=4):  # stop after given delay in seconds
+    async with asyncio.timeout(delay=5):  # stop after given delay in seconds
         try:
-            await CTX.run_checks_until_stopped_in_foreground()
+            await cli.run_seq(
+                [
+                    "--default_interval",
+                    str(
+                        DEFAULT_INTERVAL_SECONDS
+                    ),  # Note: the CLI will not read the value set for the CTX created above (note that the CLI commands actually use a different ctx).
+                    "--pg_conninfo",
+                    TEST_CONNINFO,
+                    "--log_root_level",  # use this other option to increase tested line coverage
+                    "DEBUG",
+                    "check_all_loop_fg",
+                ]
+            )
+            # (Alternative) Run programmatically
+            # await CTX.run_checks_until_stopped_in_foreground()
         except asyncio.CancelledError:
             pass  # fine, expected :-)
 

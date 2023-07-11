@@ -17,7 +17,7 @@ def config_console_logger(level: str, name: str = _LOG_NAME) -> logging.Logger:
     return logger
 
 
-LOGGER: logging.Logger = config_console_logger(DEFAULT_LOG_CONSOLE_LEVEL)
+MAIN_LOGGER: logging.Logger = config_console_logger(DEFAULT_LOG_CONSOLE_LEVEL)
 """Main application logger."""
 
 
@@ -25,8 +25,8 @@ def reset_console_logger(level: str) -> logging.Logger:
     """
     Re-initialize the main application logger to console with the given level.
     """
-    global LOGGER
+    global MAIN_LOGGER
 
-    LOGGER = config_console_logger(level)
+    MAIN_LOGGER = config_console_logger(level)
 
-    return LOGGER
+    return MAIN_LOGGER

@@ -23,7 +23,7 @@ PARSER = argparse.ArgumentParser(
 PARSER.add_argument(
     "--pg_conninfo",
     type=vutil.validated_pg_conninfo,
-    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
+    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info in URL form (e.g. 'postgres://localhost/fastchecks')",
     default=conf._POSTGRES_CONNINFO,
 )
 PARSER.add_argument(
@@ -306,6 +306,11 @@ def parse_validate_seq_args(argv: Sequence[str]) -> NamedArgs:
 
     if args.command is None:
         print("(Error) you must specify a command\n")
+        PARSER.print_help()
+        sys.exit(2)
+
+    if args.pg_conninfo is None:
+        print("(Error) you must specify a PostgreSQL connection string\n")
         PARSER.print_help()
         sys.exit(2)
 

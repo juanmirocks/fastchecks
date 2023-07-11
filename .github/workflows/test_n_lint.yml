@@ -27,9 +27,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "poetry" # cache dependencies
 
+      - name: Debug environment details
+        run: |
+          poetry debug info
+
       - name: Install dependencies
         run: |
           poetry install --no-interaction --no-root
+          poetry show
 
       - name: Test with pytest & pytest-cov
         env:

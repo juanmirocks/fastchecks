@@ -8,7 +8,7 @@ permissions:
 jobs:
   test_n_lint:
 
-    runs-on: [ubuntu-latest, macos-latest]
+    runs-on: [ubuntu-latest, macos-latest, windows-latest]
     strategy:
       matrix:
         python-version: ["3.11"]

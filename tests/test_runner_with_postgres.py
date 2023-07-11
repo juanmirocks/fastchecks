@@ -107,7 +107,20 @@ async def test_simple_checks_workflow(setup_module):
     #
 
     # Run via CLI :-)
-    await cli.run_seq(["--pg_conninfo", TEST_CONNINFO, "upsert_check", "https://python.org", "--regex", "Python .* lets you work quickly", "--interval", "2"])
+    await cli.run_seq(
+        [
+            "--pg_conninfo",
+            TEST_CONNINFO,
+            "--log_console_level",
+            "DEBUG",
+            "upsert_check",
+            "https://python.org",
+            "--regex",
+            "Python .* lets you work quickly",
+            "--interval",
+            "2",
+        ]
+    )
 
     # (Alternative) Run programmatically
     # await CTX.checks.upsert(

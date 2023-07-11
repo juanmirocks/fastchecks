@@ -1,11 +1,15 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.1.0-rc.3"
+version = "0.2.0"
 description = "🚥 Fast website monitoring backend service"
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
 repository = "https://github.com/juanmirocks/fastchecks"
 packages = [{ include = "fastchecks" }]
+
+
+[tool.poetry.scripts]
+fastchecks = 'fastchecks.cli:main'
 
 
 [tool.poetry.dependencies]
@@ -51,11 +55,12 @@ skips = ["*/test_*.py"]
 fmt = "black ."
 
 # run tests with coverage -- for now do not use xdist's `-n auto` option
-test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=lcov:.cov/coverage.lcov"  # HTML possible too: --cov-report=html:.cov/html"
+test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=lcov:.cov/coverage.lcov" # HTML possible too: --cov-report=html:.cov/html"
 
 lint_errors = "pyflakes ."
 
-lint_types.shell = "mypy || true"  # For now ignore possible non 0 exit code; but at least report
+# For now ignore possible non 0 exit code; but at least report warnings & errors
+lint_types.shell = "mypy || true"
 lint_types_strict.shell = "mypy --strict || true"
 
 lint_bandit = "bandit -c pyproject.toml -r ."

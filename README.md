@@ -42,6 +42,14 @@
 
 ## Install
 
+### With pip
+
+```shell
+# You need to run this with a Python 3.11 environment -- You can manage different python versions for instance with `pyenv`
+pip install -U fastchecks
+```
+
+
 ### From source
 
 You need to have [python poetry](https://python-poetry.org/docs/) installed. Then:
@@ -80,17 +88,17 @@ poetry shell
 
 2. Add some website URL checks info (to do check later)
     ```shell
-    python -m fastchecks.cli upsert_check 'https://example.org'  # Add a simple URL check
-    python -m fastchecks.cli upsert_check 'https://example.org' --regex 'Example D[a-z]+'  # Update the URL check to match the response body with a regex
-    python -m fastchecks.cli upsert_check 'https://python.org' --interval 5  # Add another URL check with a specific interval (in seconds)
+    fastchecks upsert_check 'https://example.org'  # Add a simple URL check
+    fastchecks upsert_check 'https://example.org' --regex 'Example D[a-z]+'  # Update the URL check to match the response body with a regex
+    fastchecks upsert_check 'https://python.org' --interval 5  # Add another URL check with a specific interval (in seconds)
     ```
 
 3. Run the checks at the scheduled intervals in the foreground until stopped.
     ```shell
-    python -m fastchecks.cli check_all_loop_fg  # checks without interval will run with a default (configurable by the envar: `FC_DEFAULT_CHECK_INTERVAL_SECONDS`)
+    fastchecks check_all_loop_fg  # checks without interval will run with a default (configurable by the envar: `FC_DEFAULT_CHECK_INTERVAL_SECONDS`)
     ```
 
 4. That's it! You might want to explore further options:
-    * For all possibilities, run: `python -m fastchecks.cli -h`
-    * For instance, might you want to run all checks only once (e.g. to schedule with cron), run: `python -m fastchecks.cli check_all_once`
-    * Or run a single website check once (without registering it): `python -m fastchecks.cli check_website 'https://www.postgresql.org/'`
+    * For all possibilities, run: `fastchecks -h`
+    * For instance, might you want to run all checks only once (e.g. to schedule with cron), run: `fastchecks check_all_once`
+    * Or run a single website check once (without registering it): `fastchecks check_website 'https://www.postgresql.org/'`

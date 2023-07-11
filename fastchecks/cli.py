@@ -320,6 +320,6 @@ if __name__ == "__main__":
 
     try:
         asyncio.run(main(args))
-    except (KeyboardInterrupt, SystemExit):
+    except (KeyboardInterrupt):
         # ignore program-exit-like exceptions in the cli
         pass

@@ -12,8 +12,8 @@ from fastchecks.sockets.postgres import schema
 from fastchecks.types import CheckResult, WebsiteCheck, WebsiteCheckScheduled
 
 
-async def common_single_pg_datastore_is_ready(pool: AsyncConnectionPool) -> bool:
-    async with pool.connection() as aconn:
+async def common_single_pg_datastore_is_ready(pool: AsyncConnectionPool, timeout: float) -> bool:
+    async with pool.connection(timeout=timeout) as aconn:
         # We just test the WebsiteCheck (written in lowercase) for existence.
         # Note: not 100% reliable (as no other objects are tested) but good enough for now.
         # MAYBE: support versioning of schemas with a hidden Version/Evolutions table or similar.
@@ -31,9 +31,9 @@ async def common_single_pg_datastore_is_ready(pool: AsyncConnectionPool) -> bool
         return cur.rowcount == 1
 
 
-async def common_single_pg_datastore_init(pool: AsyncConnectionPool) -> bool:
+async def common_single_pg_datastore_init(pool: AsyncConnectionPool, timeout: float) -> bool:
     # WARNING: Assumed to not be initialized
-    async with pool.connection() as aconn:
+    async with pool.connection(timeout=timeout) as aconn:
         init_sql = resources.files(schema).joinpath("up.sql").read_text()
         await aconn.execute(init_sql)
         return True

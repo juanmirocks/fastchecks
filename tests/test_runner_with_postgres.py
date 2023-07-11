@@ -49,7 +49,7 @@ async def setup_module():
         print(conn.execute(query_safe).statusmessage)
 
     CTX = await ChecksRunnerContext.with_single_datastore_postgres(
-        TEST_CONNINFO, default_interval_seconds=1, auto_init=True
+        TEST_CONNINFO, default_interval_seconds=1, auto_init=True, timeout_init_sec=5
     )
 
     yield "initialized"

@@ -1,17 +1,16 @@
 import asyncio
+from fastchecks.log import MAIN_LOGGER as logging
+
+import psycopg
 import pytest
 import pytest_asyncio
+from psycopg import sql
+
 from fastchecks import conf
 from fastchecks.runner import ChecksRunnerContext
-from fastchecks.types import WebsiteCheckScheduled, WebsiteCheck
+from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks.util import PRACTICAL_MAX_INT, async_itr_to_list
 from tests import tconf
-from fastchecks.sockets.postgres import schema
-from importlib import resources
-import psycopg
-from psycopg import sql
-import logging
-
 
 TEST_DBNAME: str
 TEST_CONNINFO: str
@@ -40,8 +39,6 @@ async def setup_module():
     (TEST_DBNAME, TEST_CONNINFO) = tconf.gen_new_test_postgres_conninfo()
     print(f"setup & run new db: {TEST_DBNAME}")
 
-    init_sql = resources.files(schema).joinpath("up.sql").read_text()
-
     # We need auto-commit mode to run the CREATE DATABASE command
     with psycopg.connect(tconf.TEST_POSTGRES_DEFAULT_DB_CONNINFO, autocommit=True) as conn:
         # Debug Postgres version
@@ -51,11 +48,9 @@ async def setup_module():
         query_safe = sql.SQL(query_tmpl).format(sql.Identifier(TEST_DBNAME))
         print(conn.execute(query_safe).statusmessage)
 
-    # Init the SQL schema
-    with psycopg.connect(TEST_CONNINFO) as conn:
-        print(conn.execute(init_sql).rowcount)
-
-    CTX = ChecksRunnerContext.init_with_postgres(TEST_CONNINFO, default_interval_seconds=1)
+    CTX = await ChecksRunnerContext.with_single_datastore_postgres(
+        TEST_CONNINFO, default_interval_seconds=1, auto_init=True, timeout_init_sec=5
+    )
 
     yield "initialized"
 

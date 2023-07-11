@@ -1,4 +1,3 @@
-import logging
 import re2
 import aiohttp
 
@@ -10,6 +9,7 @@ from fastchecks.util import (
     is_likely_text_based_body,
     is_content_length_less_than,
 )
+from fastchecks.log import MAIN_LOGGER as logging
 
 
 async def check_website(

@@ -15,6 +15,20 @@ import re2
 from fastchecks import meta, require
 
 
+__FALSE = ["false", "f", "0", "no", "n"]
+__TRUE = ["true", "t", "1", "yes", "y"]
+
+
+def validated_parsed_bool_answer(val: str) -> bool:
+    val_low = val.lower()
+    if val_low in __TRUE:
+        return True
+    elif val_low in __FALSE:
+        return False
+    else:
+        raise ValueError(f"Could not parse boolean answer value: {val}")
+
+
 def validated_parsed_is_positive_int(val: str) -> int:
     return validated_is_positive_int(int(val))
 
@@ -70,7 +84,7 @@ def validated_web_url(url: str) -> str:
 ACCEPTED_PG_CONNINFO_URL_SCHEMES = {"postgres", "postgresql"}
 
 
-def validated_postgres_conninfo(conninfo: str) -> str:
+def validated_pg_conninfo(conninfo: str) -> str:
     require(
         validate_url(conninfo, accepted_schemes=ACCEPTED_PG_CONNINFO_URL_SCHEMES, raise_error=False) is not None,
         f"The Postgres conninfo must be of URL form and start with a valid scheme ({ACCEPTED_PG_CONNINFO_URL_SCHEMES}) (e.g. for a local Postgres database, 'postgresql://localhost:5432/{meta.NAME}')",

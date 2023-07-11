@@ -6,6 +6,7 @@
 [![Snyk](https://img.shields.io/badge/%20Snyk_security-monitored-8742B8?logo=snyk&logoColor=white)](https://github.com/juanmirocks/fastchecks/actions)
 
 
+
 ## Features
 
 **🍀 Feature-rich**
@@ -14,7 +15,7 @@
 * Run stored all websites once, at configurable-scheduled intervals, or even with your system's cron.
 * The scheduling keeps running even if the computer goes to sleep!
 * CLI API (with `argparse`) & Python's (Python >= 3.11).
-  * [A webserver is planned](https://github.com/juanmirocks/fastchecks/issues/3)
+  * A [webserver](https://github.com/juanmirocks/fastchecks/issues/3) is planned.
 * ...and more!
 
 
@@ -25,17 +26,18 @@
   * APScheduler (v4)
 * Written in [Python 3.11 for maximum speed](https://docs.python.org/3/whatsnew/3.11.html#summary-release-highlights) 🐍
 * Speedy regex checking thanks to [google-re2 regex](https://github.com/google/re2). Note that [google-re2 syntax](https://github.com/google/re2/wiki/Syntax) is very similar to python's native `re` but not equal. In particular, backreferences are not supported, to gain on speed and [safety](https://snyk.io/blog/redos-and-catastrophic-backtracking/).
-* No ORM libraries. Just good old (& safely-escaped) SQL queries.
+* No ORM libraries. Just good old (safely-escaped) SQL queries.
 
 
 🧘 **Safety**
 * Binary or too big responses will not be read.
 * Safe regex thanks to [google-re2 regex](https://github.com/google/re2).
+* Safe escaping of SQL queries with [psycopg](https://www.psycopg.org/psycopg3/docs/advanced/typing.html#checking-literal-strings-in-queries).
 * Security static analysis with [bandit](https://github.com/PyCQA/bandit), [snyk](https://snyk.io), and [GitHub CodeQL](https://codeql.github.com/).
 * Code is fully [type-annotated](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html) and type-checked with mypy.
 * Further type checking with Pydantic (v2).
 * Further static analysis with pyflakes.
-* Safe escaping of SQL queries with [psycopg](https://www.psycopg.org/psycopg3/docs/advanced/typing.html#checking-literal-strings-in-queries).
+
 
 
 ## Install
@@ -46,8 +48,8 @@ You need to have [python poetry](https://python-poetry.org/docs/) installed. The
 
 ```shell
 # clone this repository
-_reponame="fastchecks"
-_branch="main"
+_reponame="fastchecks";
+_branch="main";
 git clone -b "${_branch}" "https://github.com/juanmirocks/${_reponame}";
 cd ${_reponame}
 
@@ -61,7 +63,7 @@ poetry shell
 ## Run
 
 0. Create a postgres DB and take note of its postgres URL conninfo. NOTE: this app was tested with Postgres v15 only; some older versions should work too.
-  * For instance, if you have a local postgres installation:
+    * For instance, if you have a local postgres installation:
     ```shell
     _dbname="fastchecks";
     createdb "${_dbname}"
@@ -69,12 +71,14 @@ poetry shell
     # Its postgres URL (assuming default user) will be:
     # postgres://localhost/fastchecks
 
-    # Then you need to pass the conninfo to the CLI, either with the explicit optional parameter `--pg_conninfo` or by setting the envar: `FC_POSTGRES_CONNINFO`
+    # Then you need to pass the conninfo to the CLI,
+    # * either with the explicit optional parameter `--pg_conninfo`, or
+    # * by setting the envar: `FC_POSTGRES_CONNINFO`
     # For simplicity, commands below assume you've set `FC_POSTGRES_CONNINFO`, e.g.:
     export FC_POSTGRES_CONNINFO='postgres://localhost/fastchecks'
     ```
 
-2. Add some website URL checks information (to do check later)
+2. Add some website URL checks info (to do check later)
     ```shell
     python -m fastchecks.cli upsert_check 'https://example.org'  # Add a simple URL check
     python -m fastchecks.cli upsert_check 'https://example.org' --regex 'Example D[a-z]+'  # Update the URL check to match the response body with a regex
@@ -87,6 +91,6 @@ poetry shell
     ```
 
 4. That's it! You might want to explore further options:
-  * For all possibilities, run: `python -m fastchecks.cli -h`
-  * For instance, might you want to run all checks only once (e.g. to schedule with cron), run: `python -m fastchecks.cli check_all_once`
-  * Or run a single website check once (without registering it): `python -m fastchecks.cli check_website 'https://www.postgresql.org/'`
+    * For all possibilities, run: `python -m fastchecks.cli -h`
+    * For instance, might you want to run all checks only once (e.g. to schedule with cron), run: `python -m fastchecks.cli check_all_once`
+    * Or run a single website check once (without registering it): `python -m fastchecks.cli check_website 'https://www.postgresql.org/'`

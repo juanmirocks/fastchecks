@@ -46,9 +46,9 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
     def is_closed(self) -> bool:
         return self._pool.closed
 
-    async def upsert(self, check: WebsiteCheckScheduled) -> None:
+    async def upsert(self, check: WebsiteCheckScheduled) -> int:
         async with self._pool.connection() as aconn:
-            await aconn.execute(
+            cur = await aconn.execute(
                 """
             INSERT INTO WebsiteCheck
             (url, regex, interval_seconds)
@@ -59,6 +59,7 @@ class WebsiteCheckSocketPostgres(WebsiteCheckSocket):
             """,
                 (check.url, check.regex, check.interval_seconds),
             )
+            return cur.rowcount
 
     async def read_n(self, n: PositiveInt) -> AsyncIterator[WebsiteCheckScheduled]:
         async with self._pool.connection() as aconn:
@@ -111,9 +112,9 @@ class CheckResultSocketPostgres(CheckResultSocket):
     def is_closed(self) -> bool:
         return self._pool.closed
 
-    async def write(self, result: CheckResult) -> None:
+    async def write(self, result: CheckResult) -> int:
         async with self._pool.connection() as aconn:
-            await aconn.execute(
+            cur = await aconn.execute(
                 """
             INSERT INTO CheckResult
             (url, regex, timestamp_start, response_time, timeout_error, host_error, other_error, response_status, regex_match)
@@ -133,6 +134,7 @@ class CheckResultSocketPostgres(CheckResultSocket):
                     result.regex_match_to_bool_or_none(),
                 ),
             )
+            return cur.rowcount
 
     async def read_last_n(self, n: PositiveInt) -> AsyncIterator[CheckResult]:
         async with self._pool.connection() as aconn:

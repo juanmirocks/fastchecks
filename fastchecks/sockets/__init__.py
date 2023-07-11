@@ -35,7 +35,7 @@ class WebsiteCheckSocket(DataStoreSocket):
         ...
 
     @abstractmethod
-    async def upsert(self, check: WebsiteCheckScheduled) -> None:
+    async def upsert(self, check: WebsiteCheckScheduled) -> int:
         """
         Upsert a check into the socket's underlying storage.
         That is, if the check's URL already exists, update the regex.
@@ -83,7 +83,7 @@ class CheckResultSocket(ABC):
         ...
 
     @abstractmethod
-    async def write(self, result: CheckResult) -> None:
+    async def write(self, result: CheckResult) -> int:
         ...
 
     @abstractmethod

@@ -98,10 +98,11 @@ def _add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
     cmd.add_argument("--interval", **_interval_kwargs())
 
     async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
-        await ctx.checks.upsert(
+        ret = await ctx.checks.upsert(
             # The args are already validated, but just in case
             WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
         )
+        print(ret)
 
     cmd.set_defaults(fun=fun)
 

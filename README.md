@@ -102,3 +102,13 @@ poetry shell
     * For all possibilities, run: `fastchecks -h`
     * For instance, might you want to run all checks only once (e.g. to schedule with cron), run: `fastchecks check_all_once`
     * Or run a single website check once (without registering it): `fastchecks check_website 'https://www.postgresql.org/'`
+
+
+
+## Copyright / License
+
+Copyright 2023 Dr. Juan Miguel Cejuela
+
+SPDX-License-Identifier: Apache-2.0
+
+See files: [LICENSE](./LICENSE) & [NOTICE](./NOTICE).

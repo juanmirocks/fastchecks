@@ -63,7 +63,7 @@ poetry shell
 ## Run
 
 0. Create a postgres DB and take note of its postgres URL conninfo. NOTE: this app was tested with Postgres v15 only; some older versions should work too.
-  * For instance, if you have a local postgres installation:
+    * For instance, if you have a local postgres installation:
     ```shell
     _dbname="fastchecks";
     createdb "${_dbname}"
@@ -91,6 +91,6 @@ poetry shell
     ```
 
 4. That's it! You might want to explore further options:
-  * For all possibilities, run: `python -m fastchecks.cli -h`
-  * For instance, might you want to run all checks only once (e.g. to schedule with cron), run: `python -m fastchecks.cli check_all_once`
-  * Or run a single website check once (without registering it): `python -m fastchecks.cli check_website 'https://www.postgresql.org/'`
+    * For all possibilities, run: `python -m fastchecks.cli -h`
+    * For instance, might you want to run all checks only once (e.g. to schedule with cron), run: `python -m fastchecks.cli check_all_once`
+    * Or run a single website check once (without registering it): `python -m fastchecks.cli check_website 'https://www.postgresql.org/'`

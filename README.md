@@ -14,6 +14,7 @@
   * You can use postgres locally installed, running on docker, or with a DBaaS, e.g. Aiven.
 * Run stored all websites once, at configurable-scheduled intervals, or even with your system's cron.
 * The scheduling keeps running even if the computer goes to sleep!
+* Nice, configurable logging
 * CLI API & Python's (Python >= 3.11).
   * A [webserver](https://github.com/juanmirocks/fastchecks/issues/3) is planned.
 * ...and more!

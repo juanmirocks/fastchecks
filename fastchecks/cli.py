@@ -40,7 +40,7 @@ PARSER.add_argument(
 PARSER.add_argument(
     "--log_root_level",
     choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
-    help=f"The logging level for the root logger (it affects all library loggers)",
+    help="The logging level for the root logger (it affects all library loggers)",
 )
 
 

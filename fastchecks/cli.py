@@ -348,8 +348,14 @@ async def _run_with_namespace(args: NamedArgs) -> None:
 
 
 async def run_str(command: str) -> None:
-    """Convenience method to run a string command"""
+    """Convenience method to run a string command. However, within-string spaces must be escaped with a backslash, e.g.:"""
     args = parse_str_args(command)
+    await _run_with_namespace(args)
+
+
+async def run_seq(command: Sequence[str]) -> None:
+    """Convenience method to run a string command. However, within-string spaces must be escaped with a backslash, e.g.:"""
+    args = parse_validate_seq_args(command)
     await _run_with_namespace(args)
 
 

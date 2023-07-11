@@ -306,8 +306,6 @@ def parse_str_args(argv: str) -> NamedArgs:
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated
 
-    print(args)
-
     async with await ChecksRunnerContext.with_single_datastore_postgres(
         pg_conninfo=args.pg_conninfo, auto_init=args.pg_auto_init
     ) as ctx:

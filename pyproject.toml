@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.1.0-rc.6"
+version = "0.1.0-rc.7"
 description = "🚥 Fast website monitoring backend service"
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"

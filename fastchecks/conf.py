@@ -55,9 +55,11 @@ def validated_interval_accepting_none(interval_seconds: int | None, name: str = 
         return vutil.validated_in_range(name, interval_seconds, MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS)
 
 
+_DEFAULT_CHECK_INTERVAL_SECONDS_ENVAR_NAME = "FC_DEFAULT_CHECK_INTERVAL_SECONDS"
+
 DEFAULT_CHECK_INTERVAL_SECONDS: int = validated_interval(
-    get_typed_envar("FC_DEFAULT_CHECK_INTERVAL_SECONDS", default=180, conversion=lambda x: int(x)),
-    name="FC_DEFAULT_CHECK_INTERVAL_SECONDS",
+    get_typed_envar(_DEFAULT_CHECK_INTERVAL_SECONDS_ENVAR_NAME, default=180, conversion=lambda x: int(x)),
+    name=_DEFAULT_CHECK_INTERVAL_SECONDS_ENVAR_NAME,
 )
 
 

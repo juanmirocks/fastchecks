@@ -96,7 +96,7 @@ poetry shell
 
 3. Run the checks at the scheduled intervals in the foreground until stopped.
     ```shell
-    fastchecks check_all_loop_fg  # checks without interval will run with a default (configurable by the envar: `FC_DEFAULT_CHECK_INTERVAL_SECONDS`)
+    fastchecks check_all_loop_fg  # checks without interval will run with a default (configurable; see command help)
     ```
 
 4. That's it! You might want to explore further options:

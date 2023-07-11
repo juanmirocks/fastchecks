@@ -11,6 +11,35 @@ from fastchecks import meta
 
 # ---------------------------------------------------------------------------
 
+
+#
+# Common command arguments
+#
+
+
+def _url_kwargs(**kwargs) -> dict[str, Any]:
+    return {"type": vutil.validated_web_url, "help": "The URL to check", **kwargs}
+
+
+def _regex_kwargs(**kwargs) -> dict[str, Any]:
+    return {
+        "type": vutil.validated_regex,
+        "help": "(Default: no check) The regex to match against the response body",
+        **kwargs,
+    }
+
+
+def _interval_kwargs(**kwargs) -> dict[str, Any]:
+    return {
+        "type": conf.validated_parsed_interval,
+        # Default help msg for single checks
+        "help": f"(Default: as set with '--default_interval' or envar '{conf._DEFAULT_CHECK_INTERVAL_SECONDS_ENVAR_NAME}') The interval in _seconds_ for a check when it is scheduled to be run periodically (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS})",
+        **kwargs,
+    }
+
+
+# ---------------------------------------------------------------------------
+
 #
 # Main parser
 #
@@ -19,6 +48,13 @@ PARSER = argparse.ArgumentParser(
     prog=f"{meta.NAME}.cli (v{meta.VERSION})",
     description=meta.DESCRIPTION,
     epilog=f"For more help check: {meta.WEBSITE}",
+)
+
+PARSER.add_argument(
+    "--default_interval",
+    **_interval_kwargs(
+        help=f"(Default: {conf.DEFAULT_CHECK_INTERVAL_SECONDS}) The default system interval in _seconds_ for checks that don't specify it (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS}). The default value can also be overridden by the envar: {conf._DEFAULT_CHECK_INTERVAL_SECONDS_ENVAR_NAME}"
+    ),
 )
 PARSER.add_argument(
     "--pg_conninfo",
@@ -42,33 +78,6 @@ PARSER.add_argument(
     choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
     help="The logging level for the root logger (it affects all library loggers)",
 )
-
-
-# -----------------------------------------------------------------------------
-
-#
-# Common command arguments
-#
-
-
-def _url_kwargs(**kwargs) -> dict[str, Any]:
-    return {"type": vutil.validated_web_url, "help": "The URL to check", **kwargs}
-
-
-def _regex_kwargs(**kwargs) -> dict[str, Any]:
-    return {
-        "type": vutil.validated_regex,
-        "help": "(Default: no check) The regex to match against the response body",
-        **kwargs,
-    }
-
-
-def _interval_kwargs(**kwargs) -> dict[str, Any]:
-    return {
-        "type": conf.validated_parsed_interval,
-        "help": f"(Default: {conf.DEFAULT_CHECK_INTERVAL_SECONDS}) The interval in _seconds_ for a check when it is scheduled to be run periodically (min: {conf.MIN_INTERVAL_SECONDS}, max: {conf.MAX_INTERVAL_SECONDS})",
-        **kwargs,
-    }
 
 
 # -----------------------------------------------------------------------------
@@ -342,7 +351,7 @@ async def _run_with_namespace(args: NamedArgs) -> None:
         log.reset_root_logger(level=args.log_root_level)
 
     async with await ChecksRunnerContext.with_single_datastore_postgres(
-        pg_conninfo=args.pg_conninfo, auto_init=args.pg_auto_init
+        pg_conninfo=args.pg_conninfo, auto_init=args.pg_auto_init, default_interval_seconds=args.default_interval
     ) as ctx:
         await args.fun(ctx, args)
 

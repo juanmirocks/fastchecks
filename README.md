@@ -6,7 +6,7 @@
 [![Snyk](https://img.shields.io/badge/%20Snyk_security-monitored-8742B8?logo=snyk&logoColor=white)](https://github.com/juanmirocks/fastchecks/actions)
 
 
-# Features
+## Features
 
 **🍀 Feature-rich**
 * Websites to check & their results are stored in postgres by default 🐘 (the library is ready for other data stores / sockets).
@@ -36,3 +36,16 @@
 * Further type checking with Pydantic (v2).
 * Further static analysis with pyflakes.
 * Safe escaping of SQL queries with [psycopg](https://www.psycopg.org/psycopg3/docs/advanced/typing.html#checking-literal-strings-in-queries).
+
+
+## Install
+
+### From source
+
+```shell
+# clone this repository
+_reponame="fastchecks"
+_branch="main"
+git clone -b "${_branch}" "https://github.com/juanmirocks/${_reponame}";
+cd ${_reponame}
+```

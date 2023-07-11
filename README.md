@@ -14,6 +14,7 @@
   * You can use postgres locally installed, running on docker, or with a DBaaS, e.g. Aiven.
 * Run stored all websites once, at configurable-scheduled intervals, or even with your system's cron.
 * The scheduling keeps running even if the computer goes to sleep!
+* Nice, configurable logging
 * CLI API & Python's (Python >= 3.11).
   * A [webserver](https://github.com/juanmirocks/fastchecks/issues/3) is planned.
 * ...and more!
@@ -86,7 +87,7 @@ poetry shell
     export FC_POSTGRES_CONNINFO='postgres://localhost/fastchecks'
     ```
 
-2. Add some website URL checks info (to do check later)
+2. Add some website URLs to later check for:
     ```shell
     fastchecks upsert_check 'https://example.org'  # Add a simple URL check
     fastchecks upsert_check 'https://example.org' --regex 'Example D[a-z]+'  # Update the URL check to match the response body with a regex
@@ -95,7 +96,7 @@ poetry shell
 
 3. Run the checks at the scheduled intervals in the foreground until stopped.
     ```shell
-    fastchecks check_all_loop_fg  # checks without interval will run with a default (configurable by the envar: `FC_DEFAULT_CHECK_INTERVAL_SECONDS`)
+    fastchecks check_all_loop_fg  # checks without interval will run with a default (configurable; see command help)
     ```
 
 4. That's it! You might want to explore further options:

@@ -1,11 +1,15 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.1.0-rc.3"
+version = "0.1.0-rc.8"
 description = "🚥 Fast website monitoring backend service"
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 readme = "README.md"
 repository = "https://github.com/juanmirocks/fastchecks"
 packages = [{ include = "fastchecks" }]
+
+
+[tool.poetry.scripts]
+fastchecks = 'fastchecks.cli:main'
 
 
 [tool.poetry.dependencies]

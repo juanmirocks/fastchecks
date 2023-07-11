@@ -2,7 +2,7 @@ import argparse
 from argparse import Namespace as NamedArgs
 import asyncio
 import sys
-from typing import Any
+from typing import Any, Sequence
 
 from fastchecks import conf, util, vutil, log
 from fastchecks.runner import ChecksRunnerContext
@@ -23,7 +23,7 @@ PARSER = argparse.ArgumentParser(
 PARSER.add_argument(
     "--pg_conninfo",
     type=vutil.validated_pg_conninfo,
-    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
+    help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info in URL form (e.g. 'postgres://localhost/fastchecks')",
     default=conf._POSTGRES_CONNINFO,
 )
 PARSER.add_argument(
@@ -297,9 +297,11 @@ _add_read_last_results(SUBPARSERS)
 
 
 # -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 
-def parse_args(argv: list[str]) -> NamedArgs:
+def parse_validate_seq_args(argv: Sequence[str]) -> NamedArgs:
     args = PARSER.parse_args(argv)
 
     if args.command is None:
@@ -307,15 +309,28 @@ def parse_args(argv: list[str]) -> NamedArgs:
         PARSER.print_help()
         sys.exit(2)
 
+    if args.pg_conninfo is None:
+        print("(Error) you must specify a PostgreSQL connection string\n")
+        PARSER.print_help()
+        sys.exit(2)
+
     return args
 
 
+def parse_sys_args() -> NamedArgs:
+    # ignore the first argument, which is the program name/path
+    return parse_validate_seq_args(sys.argv[1:])
+
+
 def parse_str_args(argv: str) -> NamedArgs:
-    return parse_args(argv.split())
+    return parse_validate_seq_args(argv.split())
 
 
-async def main(args: NamedArgs) -> None:
-    # args must and are assumed to be validated
+# ---------------------------------------------------------------------------
+
+
+async def _run_with_namespace(args: NamedArgs) -> None:
+    """Given args must and are ASSUMED to be validated"""
 
     if args.log_console_level is not None:
         log.reset_main_console_logger(level=args.log_console_level)
@@ -332,14 +347,26 @@ async def main(args: NamedArgs) -> None:
         await args.fun(ctx, args)
 
 
-# -----------------------------------------------------------------------------
+async def run_str(command: str) -> None:
+    """Convenience method to run a string command"""
+    args = parse_str_args(command)
+    await _run_with_namespace(args)
 
-if __name__ == "__main__":
-    # ignore the first argument, which is the program name/path
-    args = parse_args(sys.argv[1:])
+
+# ---------------------------------------------------------------------------
+
+
+def main() -> None:
+    args = parse_sys_args()
 
     try:
-        asyncio.run(main(args))
+        asyncio.run(_run_with_namespace(args))
     except KeyboardInterrupt:
         # ignore program-exit-like exceptions in the cli
         pass
+
+
+# -----------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    main()

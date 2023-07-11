@@ -83,7 +83,7 @@ class ChecksRunnerContext:
                 require(inited, "The postgres database could not be initialized")
         except:
             logging.critical(
-                f"Could not initialize the postgres database after {timeout_init_sec}s -- does the DB exist?",
+                f"Could not initialize the postgres database after {timeout_init_sec}s -- does the DB exist or do you have enough permissions?",
                 exc_info=False,
             )
             await ctx.close()

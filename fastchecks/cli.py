@@ -21,12 +21,6 @@ PARSER = argparse.ArgumentParser(
     epilog=f"For more help check: {meta.WEBSITE}",
 )
 PARSER.add_argument(
-    "--log_console_level",
-    choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
-    help=f"(Default: {log.DEFAULT_LOG_CONSOLE_LEVEL}) The logging level for the console",
-    default=log.DEFAULT_LOG_CONSOLE_LEVEL,
-)
-PARSER.add_argument(
     "--pg_conninfo",
     type=vutil.validated_pg_conninfo,
     help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
@@ -37,6 +31,16 @@ PARSER.add_argument(
     type=vutil.validated_parsed_bool_answer,
     help="(Default: True) auto initialize the PostgreSQL database if the schema is not found",
     default=True,
+)
+PARSER.add_argument(
+    "--log_console_level",
+    choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
+    help=f"(Default: {log.DEFAULT_LOG_CONSOLE_LEVEL}) The logging level for the console",
+)
+PARSER.add_argument(
+    "--log_root_level",
+    choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
+    help=f"The logging level for the root logger (it affects all library loggers)",
 )
 
 
@@ -312,7 +316,11 @@ def parse_str_args(argv: str) -> NamedArgs:
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated
 
-    log.reset_console_logger(level=args.log_console_level)
+    if args.log_console_level is not None:
+        log.reset_main_console_logger(level=args.log_console_level)
+
+    if args.log_root_level is not None:
+        log.reset_root_logger(level=args.log_root_level)
 
     async with await ChecksRunnerContext.with_single_datastore_postgres(
         pg_conninfo=args.pg_conninfo, auto_init=args.pg_auto_init

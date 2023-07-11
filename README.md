@@ -43,7 +43,7 @@
 
 ## Install
 
-### With pip
+### Via pip
 
 ```shell
 # You need to run this with a Python 3.11 environment -- You can manage different python versions for instance with `pyenv`
@@ -51,7 +51,7 @@ pip install -U fastchecks
 ```
 
 
-### From source
+### or via source
 
 You need to have [python poetry](https://python-poetry.org/docs/) installed. Then:
 

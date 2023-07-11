@@ -49,3 +49,10 @@ _branch="main"
 git clone -b "${_branch}" "https://github.com/juanmirocks/${_reponame}";
 cd ${_reponame}
 ```
+
+Then you need to have [python poetry](https://python-poetry.org/docs/) installed. Then:
+
+```shell
+poetry install
+poetry shell  # Further running commands assume you're in the project's shell environment
+```

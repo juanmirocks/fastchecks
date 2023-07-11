@@ -319,6 +319,9 @@ async def main(args: NamedArgs) -> None:
 
     if args.log_console_level is not None:
         log.reset_main_console_logger(level=args.log_console_level)
+    elif args.command in ("check_website_only", "check_website", "check_all_once"):
+        # Increase the level for these commands by default, because they already print the results
+        log.reset_main_console_logger(level="WARNING")
 
     if args.log_root_level is not None:
         log.reset_root_logger(level=args.log_root_level)

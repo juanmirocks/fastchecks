@@ -87,7 +87,7 @@ poetry shell
     export FC_POSTGRES_CONNINFO='postgres://localhost/fastchecks'
     ```
 
-2. Add some website URL checks info (to do check later)
+2. Add some website URLs to later check for:
     ```shell
     fastchecks upsert_check 'https://example.org'  # Add a simple URL check
     fastchecks upsert_check 'https://example.org' --regex 'Example D[a-z]+'  # Update the URL check to match the response body with a regex

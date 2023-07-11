@@ -10,11 +10,17 @@
 ## Features
 
 **🍀 Feature-rich**
+* Each check tracks:
+  * timestamp
+  * response time
+  * HTTP response status code
+  * optionally, given regex is (safely) tested if it matches the response body or not
+  * info about possible connection errors, like timeouts and/or unreachable host
 * Websites to check & their results are stored in postgres by default 🐘 (the library is ready for other data stores / sockets).
   * You can use postgres locally installed, running on docker, or with a DBaaS, e.g. Aiven.
-* Run stored all websites once, at configurable-scheduled intervals, or even with your system's cron.
-* The scheduling keeps running even if the computer goes to sleep!
-* Nice, configurable logging
+* Monitor stored websites once, at configurable-scheduled intervals (each website check can use an independent interval or use a default), or even with your system's cron.
+* The scheduling keeps running even if the computer goes to sleep.
+* Nice, configurable logging.
 * CLI API & Python's (Python >= 3.11).
   * A [webserver](https://github.com/juanmirocks/fastchecks/issues/3) is planned.
 * ...and more!

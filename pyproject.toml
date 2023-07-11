@@ -1,11 +1,13 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.2.1"
+version = "0.2.2-dev"
 description = "🚥 Fast website monitoring backend service"
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
+license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/juanmirocks/fastchecks"
 packages = [{ include = "fastchecks" }]
+include = ["NOTICE"]
 
 
 [tool.poetry.scripts]

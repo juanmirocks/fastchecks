@@ -165,7 +165,7 @@ class ChecksRunnerContext:
 
                 require(len(await scheduler.get_schedules()) != 0, "No checks to run. Add some checks first.")
 
-                print("\nRunning until stopped...")
+                print("\nRunning until stopped...\n")
                 await scheduler.run_until_stopped()
 
         except (KeyboardInterrupt, SystemExit):

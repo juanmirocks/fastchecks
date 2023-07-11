@@ -11,7 +11,7 @@ def config_console_logger(level: str, name: str = _LOG_NAME) -> logging.Logger:
     """
     Configure a console logger with the given level.
     """
-    logging.basicConfig(format="%(asctime)s  %(levelname)-8s %(name)-10s %(message)s")
+    logging.basicConfig(format="%(asctime)s  %(levelname)-8s %(name)-15s %(message)s")
     logger = logging.getLogger(name)
     logger.setLevel(level)
 

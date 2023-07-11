@@ -1,5 +1,5 @@
 import asyncio
-import logging
+from fastchecks.log import MAIN_LOGGER as logging
 import sys
 from typing import AsyncIterator
 
@@ -67,7 +67,7 @@ class ChecksRunnerContext:
         try:
             # For instance, we use the socket's pool to check if the single common datastore is ready
             is_ready = await common_single_pg_datastore_is_ready(ctx.checks._pool, timeout=timeout_init_sec)
-            logging.info(f"Postgres datastore is ready: {is_ready}")
+            logging.debug(f"Postgres datastore is ready: {is_ready}")
 
             if not is_ready:
                 require(
@@ -112,7 +112,7 @@ class ChecksRunnerContext:
     async def check_only(self, check: WebsiteCheck) -> CheckResult:
         """Check website without saving into results data storage."""
         ret = await check_website(self._aiohttp_session, check)
-        logging.debug(ret)
+        logging.info(ret)
         return ret
 
     async def check_n_write(self, check: WebsiteCheck) -> CheckResult:

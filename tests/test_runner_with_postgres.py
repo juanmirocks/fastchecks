@@ -1,5 +1,5 @@
 import asyncio
-import logging
+from fastchecks.log import MAIN_LOGGER as logging
 
 import psycopg
 import pytest

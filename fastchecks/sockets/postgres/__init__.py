@@ -1,4 +1,4 @@
-import logging
+from fastchecks.log import MAIN_LOGGER as logging
 from importlib import resources
 from typing import AsyncIterator
 

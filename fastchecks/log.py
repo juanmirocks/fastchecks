@@ -1,5 +1,6 @@
-from fastchecks import meta
 import logging
+
+from fastchecks import meta
 
 DEFAULT_LOG_CONSOLE_LEVEL = "INFO"
 

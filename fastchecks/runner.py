@@ -64,7 +64,7 @@ class ChecksRunnerContext:
         try:
             # For instance, we use the socket's pool to check if the single common datastore is ready
             is_ready = await common_single_pg_datastore_is_ready(ctx.checks._pool)
-            logging.warning(f"Postgres datastore is ready: {is_ready}")
+            logging.info(f"Postgres datastore is ready: {is_ready}")
 
             if not is_ready:
                 require(

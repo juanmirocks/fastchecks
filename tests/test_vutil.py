@@ -1,5 +1,5 @@
 import pytest
-from fastchecks.vutil import validate_regex, validated_web_url, validated_postgres_conninfo
+from fastchecks.vutil import validate_regex, validated_web_url, validated_pg_conninfo
 
 
 def test_valvalidated_web_urlidate_web_url():
@@ -21,7 +21,7 @@ def test_valvalidated_web_urlidate_web_url():
 
 
 def test_validated_postgres_conninfo():
-    fun = validated_postgres_conninfo
+    fun = validated_pg_conninfo
 
     assert fun("postgres://localhost") is not None
     assert fun("postgres://localhost/dbname") is not None

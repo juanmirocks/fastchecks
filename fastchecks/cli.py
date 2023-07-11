@@ -4,7 +4,7 @@ import asyncio
 import sys
 from typing import Any
 
-from fastchecks import conf, util, vutil
+from fastchecks import conf, util, vutil, log
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks import meta
@@ -16,13 +16,31 @@ from fastchecks import meta
 #
 
 PARSER = argparse.ArgumentParser(
-    prog=meta.NAME, description=meta.DESCRIPTION, epilog=f"For more help check: {meta.WEBSITE}"
+    prog=f"{meta.NAME}.cli (v{meta.VERSION})",
+    description=meta.DESCRIPTION,
+    epilog=f"For more help check: {meta.WEBSITE}",
 )
 PARSER.add_argument(
     "--pg_conninfo",
-    type=vutil.validated_postgres_conninfo,
+    type=vutil.validated_pg_conninfo,
     help=f"(Default: read from envar {conf._POSTGRES_CONNINFO_ENVAR_NAME}) PostgreSQL connection info",
     default=conf._POSTGRES_CONNINFO,
+)
+PARSER.add_argument(
+    "--pg_auto_init",
+    type=vutil.validated_parsed_bool_answer,
+    help="(Default: True) auto initialize the PostgreSQL database if the schema is not found",
+    default=True,
+)
+PARSER.add_argument(
+    "--log_console_level",
+    choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
+    help=f"(Default: {log.DEFAULT_LOG_CONSOLE_LEVEL}) The logging level for the console",
+)
+PARSER.add_argument(
+    "--log_root_level",
+    choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
+    help="The logging level for the root logger (it affects all library loggers)",
 )
 
 
@@ -80,10 +98,11 @@ def _add_upsert_check(subparsers: argparse._SubParsersAction) -> tuple[argparse.
     cmd.add_argument("--interval", **_interval_kwargs())
 
     async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
-        await ctx.checks.upsert(
+        ret = await ctx.checks.upsert(
             # The args are already validated, but just in case
             WebsiteCheckScheduled.with_check(WebsiteCheck.with_validation(x.url, x.regex), interval_seconds=x.interval)
         )
+        print(ret)
 
     cmd.set_defaults(fun=fun)
 
@@ -211,7 +230,7 @@ _add_check_website(SUBPARSERS)
 def _check_all_once(subparsers: argparse._SubParsersAction) -> tuple[argparse._SubParsersAction, Any]:
     cmd = subparsers.add_parser(
         "check_all_once",
-        help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with crontab)",
+        help="Check all websites once and write the results in the data store (without scheduling; you might want to schedule this command with cron)",
     )
 
     async def fun(ctx: ChecksRunnerContext, x: NamedArgs):
@@ -284,7 +303,8 @@ def parse_args(argv: list[str]) -> NamedArgs:
     args = PARSER.parse_args(argv)
 
     if args.command is None:
-        print("Error: you must specify a command")
+        print("(Error) you must specify a command\n")
+        PARSER.print_help()
         sys.exit(2)
 
     return args
@@ -297,7 +317,18 @@ def parse_str_args(argv: str) -> NamedArgs:
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated
 
-    async with ChecksRunnerContext.init_with_postgres(conf.get_postgres_conninfo()) as ctx:
+    if args.log_console_level is not None:
+        log.reset_main_console_logger(level=args.log_console_level)
+    elif args.command in ("check_website_only", "check_website", "check_all_once"):
+        # Increase the level for these commands by default, because they already print the results
+        log.reset_main_console_logger(level="WARNING")
+
+    if args.log_root_level is not None:
+        log.reset_root_logger(level=args.log_root_level)
+
+    async with await ChecksRunnerContext.with_single_datastore_postgres(
+        pg_conninfo=args.pg_conninfo, auto_init=args.pg_auto_init
+    ) as ctx:
         await args.fun(ctx, args)
 
 
@@ -309,6 +340,6 @@ if __name__ == "__main__":
 
     try:
         asyncio.run(main(args))
-    except (KeyboardInterrupt, SystemExit):
+    except KeyboardInterrupt:
         # ignore program-exit-like exceptions in the cli
         pass

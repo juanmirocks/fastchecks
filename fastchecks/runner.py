@@ -1,5 +1,6 @@
 import asyncio
-import logging
+from fastchecks.log import MAIN_LOGGER as logging
+import sys
 from typing import AsyncIterator
 
 import aiohttp
@@ -9,7 +10,12 @@ from apscheduler.triggers.interval import IntervalTrigger
 from fastchecks import conf, require, util, vutil
 from fastchecks.check import check_website
 from fastchecks.sockets import CheckResultSocket, WebsiteCheckSocket
-from fastchecks.sockets.postgres import CheckResultSocketPostgres, WebsiteCheckSocketPostgres
+from fastchecks.sockets.postgres import (
+    CheckResultSocketPostgres,
+    WebsiteCheckSocketPostgres,
+    common_single_pg_datastore_is_ready,
+    common_single_pg_datastore_init,
+)
 from fastchecks.types import CheckResult, WebsiteCheck, WebsiteCheckScheduled
 
 # -----------------------------------------------------------------------------
@@ -46,15 +52,44 @@ class ChecksRunnerContext:
     # -----------------------------------------------------------------------------
 
     @classmethod
-    def init_with_postgres(cls, postgres_conninfo: str, **kwargs) -> "ChecksRunnerContext":
-        vutil.validated_postgres_conninfo(postgres_conninfo)
+    async def with_single_datastore_postgres(
+        cls, pg_conninfo: str, auto_init: bool, timeout_init_sec: float = 10, **kwargs
+    ) -> "ChecksRunnerContext":
+        vutil.validated_pg_conninfo(pg_conninfo)
 
-        return cls(
+        ctx = cls(
             session=aiohttp.ClientSession(),
-            checks=WebsiteCheckSocketPostgres(postgres_conninfo),
-            results=CheckResultSocketPostgres(postgres_conninfo),
+            checks=WebsiteCheckSocketPostgres(pg_conninfo),
+            results=CheckResultSocketPostgres(pg_conninfo),
             **kwargs,
         )
+
+        try:
+            # For instance, we use the socket's pool to check if the single common datastore is ready
+            is_ready = await common_single_pg_datastore_is_ready(ctx.checks._pool, timeout=timeout_init_sec)
+            logging.debug(f"Postgres datastore is ready: {is_ready}")
+
+            if not is_ready:
+                require(
+                    auto_init,
+                    "The postgres database is not initialized and auto_init==False (set to True to auto-init, i.e., create the db schema)",
+                )
+
+                inited = False
+
+                async with asyncio.timeout(delay=timeout_init_sec):
+                    inited = await common_single_pg_datastore_init(ctx.checks._pool, timeout=timeout_init_sec)
+
+                require(inited, "The postgres database could not be initialized")
+        except:
+            logging.critical(
+                f"Could not initialize the postgres database after {timeout_init_sec}s -- does the DB exist?",
+                exc_info=False,
+            )
+            await ctx.close()
+            sys.exit(2)
+
+        return ctx
 
     # -----------------------------------------------------------------------------
 
@@ -77,7 +112,7 @@ class ChecksRunnerContext:
     async def check_only(self, check: WebsiteCheck) -> CheckResult:
         """Check website without saving into results data storage."""
         ret = await check_website(self._aiohttp_session, check)
-        logging.debug(ret)
+        logging.info(ret)
         return ret
 
     async def check_n_write(self, check: WebsiteCheck) -> CheckResult:
@@ -130,7 +165,7 @@ class ChecksRunnerContext:
 
                 require(len(await scheduler.get_schedules()) != 0, "No checks to run. Add some checks first.")
 
-                print("\nRunning until stopped...")
+                print("\nRunning until stopped...\n")
                 await scheduler.run_until_stopped()
 
         except (KeyboardInterrupt, SystemExit):

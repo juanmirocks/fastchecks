@@ -52,7 +52,9 @@ class ChecksRunnerContext:
     # -----------------------------------------------------------------------------
 
     @classmethod
-    async def with_single_datastore_postgres(cls, pg_conninfo: str, auto_init: bool, timeout_init_sec: float = 10, **kwargs) -> "ChecksRunnerContext":
+    async def with_single_datastore_postgres(
+        cls, pg_conninfo: str, auto_init: bool, timeout_init_sec: float = 10, **kwargs
+    ) -> "ChecksRunnerContext":
         vutil.validated_pg_conninfo(pg_conninfo)
 
         ctx = cls(
@@ -75,14 +77,15 @@ class ChecksRunnerContext:
 
                 inited = False
 
-
-
                 async with asyncio.timeout(delay=timeout_init_sec):
                     inited = await common_single_pg_datastore_init(ctx.checks._pool, timeout=timeout_init_sec)
 
                 require(inited, "The postgres database could not be initialized")
         except:
-            logging.critical(f"Could not initialize the postgres database after {timeout_init_sec}s -- does the DB exist?", exc_info=False)
+            logging.critical(
+                f"Could not initialize the postgres database after {timeout_init_sec}s -- does the DB exist?",
+                exc_info=False,
+            )
             await ctx.close()
             sys.exit(2)
 

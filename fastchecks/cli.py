@@ -4,7 +4,7 @@ import asyncio
 import sys
 from typing import Any
 
-from fastchecks import conf, util, vutil
+from fastchecks import conf, util, vutil, log
 from fastchecks.runner import ChecksRunnerContext
 from fastchecks.types import WebsiteCheck, WebsiteCheckScheduled
 from fastchecks import meta
@@ -19,6 +19,12 @@ PARSER = argparse.ArgumentParser(
     prog=f"{meta.NAME}.cli (v{meta.VERSION})",
     description=meta.DESCRIPTION,
     epilog=f"For more help check: {meta.WEBSITE}",
+)
+PARSER.add_argument(
+    "--log_console_level",
+    choices={"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"},
+    help=f"(Default: {log.DEFAULT_LOG_CONSOLE_LEVEL}) The logging level for the console",
+    default=log.DEFAULT_LOG_CONSOLE_LEVEL,
 )
 PARSER.add_argument(
     "--pg_conninfo",
@@ -306,6 +312,8 @@ def parse_str_args(argv: str) -> NamedArgs:
 async def main(args: NamedArgs) -> None:
     # args must and are assumed to be validated
 
+    log.reset_console_logger(level=args.log_console_level)
+
     async with await ChecksRunnerContext.with_single_datastore_postgres(
         pg_conninfo=args.pg_conninfo, auto_init=args.pg_auto_init
     ) as ctx:
@@ -320,6 +328,6 @@ if __name__ == "__main__":
 
     try:
         asyncio.run(main(args))
-    except (KeyboardInterrupt):
+    except KeyboardInterrupt:
         # ignore program-exit-like exceptions in the cli
         pass

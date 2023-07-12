@@ -1,5 +1,6 @@
 import pytest
 from fastchecks.vutil import (
+    validated_parsed_bool_answer,
     validate_regex,
     validated_web_url,
     validate_url,
@@ -8,6 +9,16 @@ from fastchecks.vutil import (
     REGEX_MAX_LEN,
 )
 from tests.tutil import gen_random_str
+
+
+def test_validated_parsed_bool_answer_basic():
+    fun = validated_parsed_bool_answer
+
+    # we also test with diff cases to demonstrate the check is uncased
+    assert fun("truE")
+    assert not fun("FaLSE")
+    with pytest.raises(ValueError):
+        fun("This is not booleable")
 
 
 def test_validated_web_url():

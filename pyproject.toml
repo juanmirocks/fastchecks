@@ -1,11 +1,13 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.2.1"
+version = "0.2.2"
 description = "🚥 Fast website monitoring backend service"
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
+license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/juanmirocks/fastchecks"
 packages = [{ include = "fastchecks" }]
+include = ["NOTICE"]
 
 
 [tool.poetry.scripts]
@@ -57,6 +59,9 @@ fmt = "black ."
 # run tests with coverage -- for now do not use xdist's `-n auto` option
 test = "pytest --cov=fastchecks --cov-report=term-missing --cov-report=lcov:.cov/coverage.lcov" # HTML possible too: --cov-report=html:.cov/html"
 
+# Checks the validity of the pyproject.toml file
+lint_package = "poetry check"
+
 lint_errors = "pyflakes ."
 
 # For now ignore possible non 0 exit code; but at least report warnings & errors
@@ -69,6 +74,6 @@ lint_snyk.shell = "snyk code test; snyk test"
 lint_sec = ["lint_bandit", "lint_snyk"]
 
 # Snyk not added here since it might not be installed in the system
-lint_all = ["lint_errors", "lint_types", "lint_bandit"]
+lint_all = ["lint_package", "lint_errors", "lint_types", "lint_bandit"]
 
 test_n_lint = ["test", "lint_all"]

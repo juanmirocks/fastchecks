@@ -1,6 +1,6 @@
 #
 # Utils for validating data values, specifically user inputs.
-# - Further validation functions are defined conf module (which depend on configuration values).
+# - Further validation functions are defined in the conf module (i.e., those that depend on configuration values).
 #
 # Conventions:
 # * Unless otherwise specified, validators must raise ValueError if the value is invalid.
@@ -13,6 +13,15 @@ from urllib.parse import ParseResult, urlparse
 import re2
 
 from fastchecks import meta, require
+
+# Note: currently these values are the same as those defined in the postgres DB schema. But they could be smaller, i.e. stricter.
+# MAYBE: reuse these values for the schema.
+URL_MAX_LEN = 2048
+REGEX_MAX_LEN = 2048
+
+
+def validate_max_len(x: str, max_len: int, varname: str = "string") -> None:
+    require(len(x) <= max_len, f"The {varname} cannot have length greater than: {max_len}")
 
 
 __FALSE = ["false", "f", "0", "no", "n"]
@@ -52,7 +61,9 @@ def validated_in_range(name: str, val: Number, min: Number, max: Number) -> Numb
 ACCEPTED_WEB_URL_SCHEMES = {"http", "https"}
 
 
-def validate_url(url: str, accepted_schemes: set[str], raise_error: bool = True) -> ParseResult | None:
+def validate_url(
+    url: str, accepted_schemes: set[str], raise_error: bool = True, max_len: int = URL_MAX_LEN
+) -> ParseResult | None:
     """
     Validate that the given string is a valid URL and has one of the accepted schemes.
     * If the URL is valid, return the urlparse's parsed result.
@@ -63,15 +74,18 @@ def validate_url(url: str, accepted_schemes: set[str], raise_error: bool = True)
     # See: https://snyk.io/blog/secure-python-url-validation/
 
     try:
+        validate_max_len(url, max_len=max_len, varname="url")
         ret = urlparse(url)
-        accept: bool = bool(ret.scheme) and bool(ret.netloc) and ret.scheme in accepted_schemes
+        accept = bool(ret.scheme) and bool(ret.netloc) and ret.scheme in accepted_schemes
     except:
-        return None
+        accept = False
 
     if accept:
         return ret
     elif raise_error:
-        raise ValueError(f"Invalid URL (also it must start with a scheme in: {accepted_schemes}): {url}")
+        raise ValueError(
+            f"Invalid URL (also, it must start with a scheme in {accepted_schemes}, and have max size {max_len}): {url}"
+        )
     else:
         return None
 
@@ -100,14 +114,20 @@ def validate_regex(regex: str, raise_error: bool = True) -> re2._Regexp | None:
     Else if raise_error is True, raise ValueError.
     """
     try:
+        validate_max_len(regex, max_len=REGEX_MAX_LEN, varname="regex")
         return re2.compile(regex)
-    except re2.error:
-        if raise_error:
-            raise ValueError(
-                f"Invalid regex (cannot compile it with google-re2 regex syntax https://github.com/google/re2/wiki/Syntax): {regex}"
-            )
-        else:
+    except Exception as e:
+        if not raise_error:
             return None
+        else:
+            match e:
+                case ValueError():
+                    # return early validation error for max_len for expressivity
+                    raise
+                case _:
+                    raise ValueError(
+                        f"Invalid regex (cannot compile it with google-re2 regex syntax https://github.com/google/re2/wiki/Syntax): {regex}"
+                    )
 
 
 def validated_regex(regex: str) -> str:

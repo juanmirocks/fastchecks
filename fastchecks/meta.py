@@ -1,6 +1,8 @@
 from importlib import metadata
 import tomllib
 
+# Provides package's (meta) information
+
 _MODULE_NAME = "fastchecks"
 
 try:

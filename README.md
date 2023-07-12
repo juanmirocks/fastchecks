@@ -7,7 +7,7 @@
 
 
 
-## Features
+## Highlights
 
 **🍀 Feature-rich**
 * Each check tracks:

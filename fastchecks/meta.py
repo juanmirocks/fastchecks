@@ -1,7 +1,7 @@
 from importlib import metadata
 import tomllib
 
-# Provides package's (meta) information
+# Defines constants with package's (meta) information
 
 _MODULE_NAME = "fastchecks"
 

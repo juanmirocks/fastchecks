@@ -7,7 +7,7 @@ from fastchecks.vutil import (
     URL_MAX_LEN,
     REGEX_MAX_LEN,
 )
-from tests.tconf import gen_random_str
+from tests.tutil import gen_random_str
 
 
 def test_validated_web_url():

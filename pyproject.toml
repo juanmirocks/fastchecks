@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastchecks"
-version = "0.2.2"
+version = "0.2.3-dev"
 description = "🚥 Fast website monitoring backend service"
 authors = ["Dr. Juan Miguel Cejuela <i@juanmi.rocks>"]
 license = "Apache-2.0"

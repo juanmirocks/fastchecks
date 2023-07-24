@@ -1,0 +1,17 @@
+# Specify a non-default branch for pull requests for pip (poetry)
+
+# See all parameters documented in:
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Even if we use poetry, GitHub requires the following value to be `pip` (as of 2023-07-24)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Raise pull requests for version updates to pip against the following branch
+    target-branch: "develop"
+    # Labels on pull requests for version updates only
+    labels:
+      - "pip (poetry) dependencies"

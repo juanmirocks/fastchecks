@@ -18,7 +18,7 @@ fastchecks = 'fastchecks.cli:main'
 python = "^3.11"
 aiohttp = "^3.8.5"
 psycopg = { extras = ["binary", "pool"], version = "^3.1.9" }
-pydantic = "^2.0.1"
+pydantic = "^2.1.1"
 apscheduler = "4.0.0a2"
 google-re2 = "^1.0"
 

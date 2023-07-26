@@ -12,6 +12,6 @@ updates:
       interval: "weekly"
     # Raise pull requests for version updates to pip against the following branch
     target-branch: "develop"
-    # Labels on pull requests for version updates only
-    labels:
-      - "pip (poetry) dependencies"
+
+    # "Always increase the minimum version requirement to match the new version. If a range already exists, typically this only increases the lower bound."
+    versioning-strategy: "increase"

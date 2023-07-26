@@ -12,6 +12,3 @@ updates:
       interval: "weekly"
     # Raise pull requests for version updates to pip against the following branch
     target-branch: "develop"
-    # Labels on pull requests for version updates only
-    labels:
-      - "pip (poetry) dependencies"

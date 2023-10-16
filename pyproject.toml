@@ -24,7 +24,7 @@ google-re2 = "^1.0"
 
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.4.1"
+mypy = "^1.6.0"
 pyflakes = "^3.0.1"
 bandit = "^1.7.5"
 black = "^23.3.0"
